@@ -1,4 +1,8 @@
-public class MyClass {
+package demo;
+
+import Math;
+
+public class MyClass extends Something {
   private static final int CONSTANT = 5;
   int n;
   public void MyFunction(int n) { this.n = n; }
@@ -9,5 +13,10 @@ public class MyClass {
     int y = 2 * x;
     System.out.println(y);
     return n;
+  }
+
+  @Override
+  public String toString() {
+    return "some string";
   }
 }
