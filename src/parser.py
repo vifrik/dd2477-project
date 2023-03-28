@@ -1,6 +1,5 @@
 import javalang
 import argparse
-from pprint import pprint
 import json
 
 
@@ -14,8 +13,30 @@ def serialize_sets(obj):
     if isinstance(obj, set):
         return list(obj)
 
-def extract_variable_declarator(obj):
-    assert isinstance(obj, javalang.tree.VariableDeclarator), "error"
+
+def extract_fields(tree):
+    field_data = list()
+
+    for path, node in tree.filter(javalang.tree.FieldDeclaration):
+        field_entry = dict()
+        field_entry['name'] = node.declarators[0].name
+        field_entry['type'] = node.type.name if node.type is not None else None
+        field_entry['modifiers'] = node.modifiers
+        field_data.append(field_entry)
+
+    return field_data
+
+
+def extract_variables(tree):
+    variable_data = list()
+
+    for path, node in tree.filter(javalang.tree.VariableDeclaration):
+        variable_entry = dict()
+        variable_entry['name'] = node.declarators[0].name
+        variable_entry['type'] = node.type.name if node.type is not None else None
+        variable_data.append(variable_entry)
+
+    return variable_data
 
 
 def extract_function_parameters(param_list):
@@ -67,6 +88,22 @@ def extract_metadata(tree, filepath, url):
     return metadata
 
 
+def get_json(filename, url, debug=False):
+    contents = read(filename)
+    tree = javalang.parse.parse(contents)
+
+    debug and print(tree)
+
+    output = dict()
+    output['document'] = dict()
+    output['document']['metadata'] = extract_metadata(tree, filename, url)
+    output['document']['classes'] = extract_classes(tree)
+    output['document']['functions'] = extract_functions(tree)
+    output['document']['variables'] = extract_variables(tree)
+    output['document']['fields'] = extract_fields(tree)
+
+    return json.dumps(output, indent=2, default=serialize_sets)
+
 
 def main():
     Parser = argparse.ArgumentParser()
@@ -74,16 +111,7 @@ def main():
     Parser.add_argument("-d", "--debug", help="debug mode", action='store_true')
     args = Parser.parse_args()
 
-    contents = read(args.input)
-    tree = javalang.parse.parse(contents)
-
-    output = dict()
-    output['document'] = dict()
-    output['document']['metadata'] = extract_metadata(tree, args.input, None)
-    output['document']['classes'] = extract_classes(tree)
-    output['document']['functions'] = extract_functions(tree)
-
-    json_object = json.dumps(output, indent=2, default=serialize_sets)
+    json_object = get_json(args.input, None, debug=args.debug)
 
     args.debug and print(json_object)
 
