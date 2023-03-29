@@ -2,6 +2,7 @@
 
 import javalang
 import json
+import argparse
 
 
 class Parser:
@@ -99,7 +100,11 @@ class Parser:
 
 
 def main():
-    parser = Parser("../other/sample_java/MyClass.java", "url_here")
+    ArgParser = argparse.ArgumentParser()
+    ArgParser.add_argument("-i", "--input", help="input file", default="../other/sample_java/MyClass.java")
+    args = ArgParser.parse_args()
+
+    parser = Parser(args.input, "url_here")
     json_object = parser.parse()
     print(json_object)
 
