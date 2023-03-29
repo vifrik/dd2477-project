@@ -98,7 +98,7 @@ class Parser:
             elif isinstance(node, javalang.tree.FieldDeclaration):
                 result['fields'].append(Parser.Utils.extract_field(node))
 
-        return json.dumps(result, indent=2, default=Parser.Utils.serialize_sets)
+        return result
 
     def parse_folder(self):
         for filename in os.listdir(self.folderpath):

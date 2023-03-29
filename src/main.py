@@ -4,6 +4,7 @@ import json
 
 from scraper import Scraper
 from parser import Parser
+from elastic import Elastic
 from credentials import token
 
 
@@ -22,10 +23,13 @@ def parse(args):
 
 
 def upload(args, json_object):
-    if args.delete:
-        pass  # TODO: delete here
+    elastic = Elastic(args.upload)
 
-    pass  # TODO: upload here
+    if args.delete:
+        args.delete = False
+        elastic.delete()
+
+    elastic.upload(json_object)
 
 
 def parse_args():
@@ -33,7 +37,7 @@ def parse_args():
     mode_group = Parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument("-S", "--scrape", help="should scraper", action="store_true")
     mode_group.add_argument("-P", "--parse", help="should parse", action="store_true")
-    Parser.add_argument("-u", "--upload", help="should upload", action="store_true")
+    Parser.add_argument("-u", "--upload", metavar="index", help="should upload")
     Parser.add_argument("--delete", help="(WARNING, deletes entire index) should delete", action="store_true")
     return Parser.parse_args()
 
