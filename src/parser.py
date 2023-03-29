@@ -3,6 +3,7 @@
 import javalang
 import json
 import argparse
+import os
 
 
 class Parser:
@@ -53,27 +54,28 @@ class Parser:
                     annotation.name for annotation in node.annotations],
                 'position': node.position,
                 'extends': node.extends.name if node.extends is not None else None,
-                'implements': node.implements.name if node.implements is not None else None
+                # 'implements': node.implements.name if node.implements is not None else None
             }
 
-        def extract_metadata(node, filepath, url):
+        def extract_metadata(node):
             return {
-                'filepath': filepath,
-                'url': url,
                 'imports': [import_ .path for import_ in node.imports],
                 'package': node.package.name if node.package is not None else None
             }
 
-    def __init__(self, filepath, url) -> None:
-        self.filepath = filepath
-        self.url = url
+    def __init__(self, folderpath, metadata_filename):
+        self.folderpath = folderpath
+        self.metadata_filename = metadata_filename
+
+        with open(os.path.join(folderpath, metadata_filename), "r") as f:
+            self.metadata = json.load(f)
+
+    def _parse(self, filename):
+        filepath = os.path.join(self.folderpath, filename)
 
         with open(filepath, "r") as f:
             source_code = f.read()
 
-        self.source_code = source_code
-
-    def parse(self):
         result = {
             'metadata': None,
             'functions': [],
@@ -82,11 +84,11 @@ class Parser:
             'fields': []
         }
 
-        tree = javalang.parse.parse(self.source_code)
+        tree = javalang.parse.parse(source_code)
         for path, node in javalang.ast.walk_tree(tree):
             if isinstance(node, javalang.tree.CompilationUnit):
-                result['metadata'] = Parser.Utils.extract_metadata(
-                    node, self.filepath, self.url)
+                result['metadata'] = self.metadata[filename]
+                result['metadata'].update(Parser.Utils.extract_metadata(node))
             elif isinstance(node, javalang.tree.ClassDeclaration):
                 result['classes'].append(Parser.Utils.extract_class(node))
             elif isinstance(node, javalang.tree.MethodDeclaration):
@@ -98,16 +100,11 @@ class Parser:
 
         return json.dumps(result, indent=2, default=Parser.Utils.serialize_sets)
 
-
-def main():
-    ArgParser = argparse.ArgumentParser()
-    ArgParser.add_argument("-i", "--input", help="input file", default="../other/sample_java/MyClass.java")
-    args = ArgParser.parse_args()
-
-    parser = Parser(args.input, "url_here")
-    json_object = parser.parse()
-    print(json_object)
-
-
-if __name__ == '__main__':
-    main()
+    def parse_folder(self):
+        for filename in os.listdir(self.folderpath):
+            if filename == self.metadata_filename:
+                continue
+            try:
+                yield self._parse(filename)
+            except javalang.parser.JavaSyntaxError:
+                print(f"Something went from parsing {filename}...")
