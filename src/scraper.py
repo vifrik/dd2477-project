@@ -129,7 +129,8 @@ class Scraper:
                 self.scraped_repos.add(repo.full_name)
 
 
-# NOTE: Replace with a valid token
-token = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-crawler = Scraper(token)
-crawler.run()
+if __name__ == '__main__':
+    # NOTE: Replace with a valid token
+    token = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    crawler = Scraper(token)
+    crawler.run()
