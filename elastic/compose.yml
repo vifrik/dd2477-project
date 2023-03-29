@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: elasticsearch:8.6.2
+    restart: always
+    volumes: 
+      - '~/elastic/elasticsearch/data:/usr/share/elasticsearch/data'
+    ports:
+      - 9200:9200
+    environment:
+      node.name: es01
+      cluster.name: docker-cluster
+      cluster.initial_master_nodes: es01
+      ES_JAVA_OPTS: "-Xms2g -Xmx2g"
+      xpack.security.enabled: "false"
+      xpack.license.self_generated.type: basic
+    networks:
+      - elastic
+
+networks:
+  elastic:
+    external: true
