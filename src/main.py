@@ -3,6 +3,7 @@ from elasticsearch import Elasticsearch
 import json
 
 from scraper import Scraper
+from parser import Parser
 from credentials import token
 
 
@@ -12,10 +13,12 @@ def scrape():
 
 
 def parse():
-    pass
+    parser = Parser("data/java", "metadata.json")
+    for json_object in parser.parse_folder():
+        upload(json_object)
 
 
-def upload():
+def upload(json_object):
     pass
 
 
@@ -32,6 +35,10 @@ def main():
 
     if args.scrape:
         scrape()
+        exit(0)
+
+    if args.parse:
+        parse()
         exit(0)
 
 
