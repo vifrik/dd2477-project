@@ -3,6 +3,7 @@ from github.GithubException import RateLimitExceededException
 from time import sleep
 import os
 from datetime import datetime, timedelta
+import json
 
 
 EXTENSIONS = {
@@ -30,15 +31,27 @@ class Scraper:
         assert len(dates) == 2, "Must provide start and end dates"
         assert dates[0] < dates[1], "Start date must be before end date"
 
-        os.makedirs(path, exist_ok=True)
-
         self.g = Github(token)
-        self.path = path
+        self.path = os.path.join(path, EXTENSIONS[language])
+        self.metadata_path = os.path.join(self.path, "metadata.json")
         self.language = language
         self.extension = EXTENSIONS[language]
         self.dates = dates
         self.scraped_repos = set()
         self.scraped_file_count = 0
+
+        self.path_setup()
+
+    # Create the directory and metadata file if they don't exist.
+    def path_setup(self):
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+            with open(self.metadata_path, "w") as f:
+                json.dump(dict(), f)
+        else:
+            with open(self.metadata_path, "r") as f:
+                metadata = json.load(f)
+                self.scraped_repos = set([file["repo"] for file in metadata.values()])
 
     def get_repos(self):
         # One week at a time
@@ -91,21 +104,35 @@ class Scraper:
             except Exception as e:
                 print(f"Could not get code: {e}")
 
-    def save_file(self, name, content):
-        filename = os.path.join(self.path, name)
+    def save_file(self, name, content, **kwargs):
+        file_path = os.path.join(self.path, name)
         base, ext = os.path.splitext(name)
         count = 1
-        while os.path.exists(filename):
+        while os.path.exists(file_path):
             # Add a number to the end of clashing filenames
             name = f"{base}_{count}{ext}"
-            filename = os.path.join(self.path, name)
+            file_path = os.path.join(self.path, name)
             count += 1
-        with open(filename, "wb") as f:
+        filename = os.path.basename(file_path)
+        with open(file_path, "wb") as f:
             try:
                 f.write(content)
-                return True
             except Exception as e:
                 print(f"Could not write file: {e}")
+                return False
+        with open(self.metadata_path, "r") as f:
+            metadata = json.load(f)
+        metadata[filename] = {
+            "name": name,
+            "given_name": filename,
+            "timestamp": datetime.now().isoformat(),
+        } | kwargs
+        with open(self.metadata_path, "w") as f:
+            try:
+                json.dump(metadata, f, indent=4)
+                return True
+            except Exception as e:
+                print(f"Could not write metadata: {e}")
                 return False
 
     def run(self):
@@ -120,7 +147,14 @@ class Scraper:
                     rate_limit = self.g.get_rate_limit()
                     code = self.get_code(file)
                     if code:
-                        if self.save_file(file.name, code):
+                        if self.save_file(
+                            file.name,
+                            code,
+                            repo=repo.full_name,
+                            path=file.path,
+                            html_url=file.html_url,
+                            download_url=file.download_url,
+                        ):
                             self.scraped_file_count += 1
                             if self.scraped_file_count % 100 == 0:
                                 print(
@@ -129,7 +163,7 @@ class Scraper:
                 self.scraped_repos.add(repo.full_name)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # NOTE: Replace with a valid token
     token = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     crawler = Scraper(token)
