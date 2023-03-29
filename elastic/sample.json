@@ -1,0 +1,72 @@
+{
+  "document": {
+    "metadata": {
+      "filepath": "../other/sample_java/MyClass.java",
+      "url": null,
+      "imports": [],
+      "package": null
+    },
+    "classes": [
+      {
+        "name": "MyClass"
+      }
+    ],
+    "functions": [
+      {
+        "name": "MyFunction",
+        "modifiers": [
+          "public"
+        ],
+        "parameters": [
+          {
+            "name": "n",
+            "type": "int"
+          }
+        ],
+        "return_type": null
+      },
+      {
+        "name": "getN",
+        "modifiers": [
+          "public"
+        ],
+        "parameters": [],
+        "return_type": "int"
+      }
+    ],
+    "variables": [
+      {
+        "name": "hello",
+        "type": "String"
+      },
+      {
+        "name": "some_type",
+        "type": "Integer"
+      },
+      {
+        "name": "x",
+        "type": "int"
+      },
+      {
+        "name": "y",
+        "type": "int"
+      }
+    ],
+    "fields": [
+      {
+        "name": "CONSTANT",
+        "type": "int",
+        "modifiers": [
+          "final",
+          "private",
+          "static"
+        ]
+      },
+      {
+        "name": "n",
+        "type": "int",
+        "modifiers": []
+      }
+    ]
+  }
+}
