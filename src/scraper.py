@@ -49,6 +49,14 @@ class Scraper:
             with open(self.metadata_path, "w") as f:
                 json.dump(dict(), f)
         else:
+            try:
+                f = open(self.metadata_path, "r")
+                metadata = json.load(f)
+                self.scraped_repos = set([file["repo"] for file in metadata.values()])
+            except FileNotFoundError:
+                print("WARNING: metadata.json not found, creating new one")
+                with open(self.metadata_path, "w") as f:
+                    json.dump(dict(), f)
             with open(self.metadata_path, "r") as f:
                 metadata = json.load(f)
                 self.scraped_repos = set([file["repo"] for file in metadata.values()])
@@ -108,12 +116,12 @@ class Scraper:
         file_path = os.path.join(self.path, name)
         base, ext = os.path.splitext(name)
         count = 1
+        filename = name
         while os.path.exists(file_path):
             # Add a number to the end of clashing filenames
-            name = f"{base}_{count}{ext}"
-            file_path = os.path.join(self.path, name)
+            filename = f"{base}_{count}{ext}"
+            file_path = os.path.join(self.path, filename)
             count += 1
-        filename = os.path.basename(file_path)
         with open(file_path, "wb") as f:
             try:
                 f.write(content)
@@ -166,5 +174,5 @@ class Scraper:
 if __name__ == "__main__":
     # NOTE: Replace with a valid token
     token = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-    crawler = Scraper(token)
-    crawler.run()
+    scraper = Scraper(token)
+    scraper.run()
