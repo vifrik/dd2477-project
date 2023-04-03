@@ -44,22 +44,23 @@ class Scraper:
 
     # Create the directory and metadata file if they don't exist.
     def path_setup(self):
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
+        os.makedirs(self.path, exist_ok=True)
+        try:
+            self.metadata_file = open(self.metadata_path, "r+")
+            metadata = json.load(self.metadata_file)
+            self.scraped_repos = set([file["repo"] for file in metadata.values()])
+            # Remove the closing brace and add a comma
+            self.metadata_file.seek(0, 2)
+            self.metadata_file.seek(self.metadata_file.tell() - 3, 0)
+            self.metadata_file.truncate()
+            self.metadata_file.write(",\n")
+
+        except FileNotFoundError:
+            print("NOTE: metadata.json not found, creating new one")
             with open(self.metadata_path, "w") as f:
-                json.dump(dict(), f)
-        else:
-            try:
-                f = open(self.metadata_path, "r")
-                metadata = json.load(f)
-                self.scraped_repos = set([file["repo"] for file in metadata.values()])
-            except FileNotFoundError:
-                print("WARNING: metadata.json not found, creating new one")
-                with open(self.metadata_path, "w") as f:
-                    json.dump(dict(), f)
-            with open(self.metadata_path, "r") as f:
-                metadata = json.load(f)
-                self.scraped_repos = set([file["repo"] for file in metadata.values()])
+                f.write("{\n")
+            self.metadata_file = open(self.metadata_path, "r+")
+            self.metadata_file.seek(0, 2)
 
     def get_repos(self):
         # One week at a time
@@ -128,51 +129,56 @@ class Scraper:
             except Exception as e:
                 print(f"Could not write file: {e}")
                 return False
-        with open(self.metadata_path, "r") as f:
-            metadata = json.load(f)
-        metadata[filename] = {
+        metadata = {
             "name": name,
             "given_name": filename,
             "timestamp": datetime.now().isoformat(),
         } | kwargs
-        with open(self.metadata_path, "w") as f:
-            try:
-                json.dump(metadata, f, indent=4)
-                return True
-            except Exception as e:
-                print(f"Could not write metadata: {e}")
-                return False
+        try:
+            self.metadata_file.write(f'"{filename}": {json.dumps(metadata)},\n')
+            return True
+        except Exception as e:
+            print(f"Could not write metadata: {e}")
+            return False
 
     def run(self):
-        for repos in self.get_repos():
-            for repo in repos:
-                self.repo = repo
-                if repo.full_name in self.scraped_repos:
-                    print(f"Already scraped {repo.full_name}")
-                    continue
-                print(f"Scraping {repo.full_name}")
-                for file in self.get_files():
-                    rate_limit = self.g.get_rate_limit()
-                    code = self.get_code(file)
-                    if code:
-                        if self.save_file(
-                            file.name,
-                            code,
-                            repo=repo.full_name,
-                            path=file.path,
-                            html_url=file.html_url,
-                            download_url=file.download_url,
-                        ):
-                            self.scraped_file_count += 1
-                            if self.scraped_file_count % 100 == 0:
-                                print(
-                                    f"Saved {self.scraped_file_count} files. (Rate limit remaining: {rate_limit.core.remaining})"
-                                )
-                self.scraped_repos.add(repo.full_name)
+        try:
+            for repos in self.get_repos():
+                for repo in repos:
+                    self.repo = repo
+                    if repo.full_name in self.scraped_repos:
+                        print(f"Already scraped {repo.full_name}")
+                        continue
+                    print(f"Scraping {repo.full_name}")
+                    for file in self.get_files():
+                        rate_limit = self.g.get_rate_limit()
+                        code = self.get_code(file)
+                        if code:
+                            if self.save_file(
+                                file.name,
+                                code,
+                                repo=repo.full_name,
+                                path=file.path,
+                                html_url=file.html_url,
+                                download_url=file.download_url,
+                            ):
+                                self.scraped_file_count += 1
+                                if self.scraped_file_count % 100 == 0:
+                                    print(
+                                        f"Saved {self.scraped_file_count} files. (Rate limit remaining: {rate_limit.core.remaining})"
+                                    )
+                    self.scraped_repos.add(repo.full_name)
+        except Exception as e:
+            print(f"Could not scrape: {e}")
+        finally:
+            # Fix metadata file before closing
+            self.metadata_file.seek(self.metadata_file.tell() - 3, 0)
+            self.metadata_file.write("\n}")
+            self.metadata_file.close()
 
 
 if __name__ == "__main__":
     # NOTE: Replace with a valid token
-    token = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    token = "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"
     scraper = Scraper(token)
     scraper.run()
