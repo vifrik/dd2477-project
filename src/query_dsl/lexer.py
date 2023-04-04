@@ -70,6 +70,22 @@ class Identifier(Token):
     DESCRIPTION = None
 
 
+def generate_documentation():
+    token_classes = [Keyword, Binder, Operator, Separator]
+
+    for token_class in token_classes:
+        print(f"Token type: {token_class.__name__}:")
+        print(f"\tpossible {token_class.__name__.lower()}s:")
+        if token_class.VALUES is not None:
+            for value in token_class.VALUES:
+                print(f"\t\t'{value}'")
+
+        if token_class.DESCRIPTION is not None:
+            print(f"\tdescription:")
+            print(f"\t\t{token_class.DESCRIPTION}")
+        print("\n")
+
+
 class Lexer(object):
     def __init__(self, data):
         self.cur_pos = 0
