@@ -13,19 +13,21 @@ class TestTokenizer(unittest.TestCase):
         tokens = lexer.tokenize(query)
         correct = [
             ('Keyword', 'returnType'),
-            ('Operator', ':'),
+            ('Binder', ':'),
             ('Identifier', 'int'),
             ('Operator', 'AND'),
             ('Separator', '('),
             ('Keyword', 'functionName'),
-            ('Operator', ':'),
+            ('Binder', ':'),
             ('Identifier', 'hello'),
             ('Operator', 'OR'),
             ('Keyword', 'functionName'),
-            ('Operator', ':'),
+            ('Binder', ':'),
             ('Identifier', 'hallo'),
             ('Separator', ')')
         ]
         for token, (class_name, value) in zip(tokens, correct):
-            self.assertTrue(token.__class__.__name__ == class_name)
-            self.assertTrue(token.value == value)
+            self.assertTrue(token.__class__.__name__ == class_name,
+                            msg=f"{token}\n{class_name}, {value}")
+            self.assertTrue(token.value == value,
+                            msg=f"{token}\n{class_name}, {value}")

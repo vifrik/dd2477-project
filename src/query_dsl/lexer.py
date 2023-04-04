@@ -29,13 +29,17 @@ class Keyword(Token):
     }
 
 
+class Binder(Token):
+    VALUES = {
+        ':'
+    }
+
+
 class Operator(Token):
     MAX_LEN = 3
     VALUES = {
-        ":",
         "AND",
-        "OR",
-        "="
+        "OR"
     }
 
 
@@ -99,6 +103,9 @@ class Lexer(object):
             if c.isspace():
                 self.cur_pos += 1
                 continue
+            elif c == ':':
+                self.end_pos = self.cur_pos + 1
+                token_type = Binder
             elif self.is_operator():
                 token_type = Operator
             elif self.is_separator():
