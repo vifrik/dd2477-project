@@ -28,6 +28,6 @@ class TestTokenizer(unittest.TestCase):
         ]
         for token, (class_name, value) in zip(tokens, correct):
             self.assertTrue(token.__class__.__name__ == class_name,
-                            msg=f"{token}\n{class_name}, {value}")
+                            msg=f"{token.__class__.__name__} != {class_name}")
             self.assertTrue(token.value == value,
-                            msg=f"{token}\n{class_name}, {value}")
+                            msg=f"{token.value} != {value}")
