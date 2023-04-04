@@ -3,6 +3,9 @@ class LexerError(Exception):
 
 
 class Token(object):
+    VALUES = None
+    DESCRIPTION = None
+
     def __init__(self, value):
         self.value = value
 
@@ -39,7 +42,6 @@ class Keyword(Token):
         "fieldName",
         "fieldType",
     }
-    DESCRIPTION = None
 
 
 class Binder(Token):
@@ -55,19 +57,16 @@ class Operator(Token):
         "AND",
         "OR"
     }
-    DESCRIPTION = None
 
 
 class Separator(Token):
     VALUES = {
         "(", ")"
     }
-    DESCRIPTION = None
 
 
 class Identifier(Token):
-    VALUES = None
-    DESCRIPTION = None
+    pass
 
 
 def generate_documentation():
