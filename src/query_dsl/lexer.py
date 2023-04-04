@@ -103,7 +103,7 @@ class Lexer(object):
             if c.isspace():
                 self.cur_pos += 1
                 continue
-            elif c == ':':
+            elif c in Binder.VALUES:
                 self.end_pos = self.cur_pos + 1
                 token_type = Binder
             elif self.is_operator():
