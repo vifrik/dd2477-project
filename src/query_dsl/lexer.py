@@ -15,17 +15,29 @@ class Token(object):
 
 class Keyword(Token):
     VALUES = {
-        "returnType",
-        "functionDecorator",
-        "functionName",
-        "parameterType",
-        "parameterValue",
-        "parameterName",
-        "variableType",
-        "variableName",
-        "fieldType",
-        "fieldName",
+        # metadata
+        "filename",
+        "repo",
         "import",
+        "package",
+        # function (method)
+        "functionName",
+        "functionModifier",
+        "returnType",
+        "functionAnnotation",
+        "parameterName",
+        "parameterType",
+        # class
+        "className",
+        "classModifier",
+        "classAnnotation",
+        "classExtend",
+        # variable
+        "variableName",
+        "variableType",
+        # field
+        "fieldName",
+        "fieldType",
     }
 
 
