@@ -39,12 +39,14 @@ class Keyword(Token):
         "fieldName",
         "fieldType",
     }
+    DESCRIPTION = None
 
 
 class Binder(Token):
     VALUES = {
         ':'
     }
+    DESCRIPTION = "Used to combine Keyword and Identifier"
 
 
 class Operator(Token):
@@ -53,16 +55,19 @@ class Operator(Token):
         "AND",
         "OR"
     }
+    DESCRIPTION = None
 
 
 class Separator(Token):
     VALUES = {
         "(", ")"
     }
+    DESCRIPTION = None
 
 
 class Identifier(Token):
-    pass
+    VALUES = None
+    DESCRIPTION = None
 
 
 class Lexer(object):
