@@ -1,6 +1,7 @@
 import json
 
 from . import lexer
+from .keyword_mapping import LOOKUP, LookupException
 
 class SyntaxError(Exception):
     pass
@@ -83,21 +84,58 @@ class Parser(object):
 
         return output_queue
 
+    def enclose_json(self, operator, left_operand, right_operand):
+        operation = None
+        if operator == "AND":
+            operation = "must"
+        elif operator == "OR":
+            operation = "should"
+
+        return {
+            "bool": {
+                operation: [
+                    {
+                        "match": left_operand,
+                    },
+                    {
+                        "match": right_operand
+                    }
+                ]
+            }
+        }
+
+
     def evaluate_postfix(self, tokens):
         operand_stack = []
 
         for token in tokens:
             if isinstance(token, Query):
-                operand_stack.append({token.query_type:token.query_value})
+                if token.query_type not in LOOKUP:
+                    raise LookupException(f"{token.query_type} not in lookup table")
+                operand_stack.append({LOOKUP[token.query_type]: token.query_value})
             elif isinstance(token, lexer.Operator):
                 left_operand = operand_stack.pop()
                 right_operand = operand_stack.pop()
-                if token.value == 'AND':
-                    result = {'AND': [left_operand, right_operand]}
-                elif token.value == 'OR':
-                    result = {'OR': [left_operand, right_operand]}
+                if token.value == "AND" or token.value == "OR":
+                    result = self.enclose_json(token.value, left_operand, right_operand)
                 else:
                     raise SyntaxError(f"Unrecognized operator {token.value}")
                 operand_stack.append(result)
 
         return operand_stack.pop()
+
+    def get_elasticsearch_query(self, tokens, json_format=False):
+        ast = self.evaluate_postfix(tokens)
+        if "bool" not in ast:
+            query = {
+                "match": ast
+            }
+        else:
+            query = {
+                "bool": {
+                    "must": self.evaluate_postfix(tokens)
+                }
+            }
+        if json_format:
+            return json.dumps(query, indent=4)
+        return query

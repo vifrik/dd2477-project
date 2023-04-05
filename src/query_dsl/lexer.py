@@ -1,3 +1,5 @@
+from .keyword_mapping import LOOKUP
+
 class LexerError(Exception):
     pass
 
@@ -17,31 +19,7 @@ class Token(object):
 
 
 class Keyword(Token):
-    VALUES = {
-        # metadata
-        "filename",
-        "repo",
-        "import",
-        "package",
-        # method
-        "methodName",
-        "methodModifier",
-        "returnType",
-        "functionAnnotation",
-        "parameterName",
-        "parameterType",
-        # class
-        "className",
-        "classModifier",
-        "classAnnotation",
-        "classExtend",
-        # variable
-        "variableName",
-        "variableType",
-        # field
-        "fieldName",
-        "fieldType",
-    }
+    VALUES = LOOKUP.keys()
 
 
 class Binder(Token):
