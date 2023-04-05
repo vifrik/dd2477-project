@@ -63,9 +63,9 @@ class Parser(object):
             token = self.tokens.pop()
 
             if isinstance(token, lexer.Keyword):
-                self.check_grammar(lexer.Binder, token)
-                new_token = self.check_grammar(lexer.Identifier, token)
-                output_queue.append(Query(token.value, new_token.value))
+                binder = self.check_grammar(lexer.Binder, token)
+                identifier = self.check_grammar(lexer.Identifier, binder)
+                output_queue.append(Query(token.value, identifier.value))
             elif isinstance(token, lexer.Operator):
                 while operator_stack and isinstance(operator_stack[-1], lexer.Operator) and precedence[operator_stack[-1].value] >= precedence[token.value]:
                     output_queue.append(operator_stack.pop())
