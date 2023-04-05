@@ -79,7 +79,7 @@ class Lexer(object):
         self.end_pos = self.cur_pos + 1
 
         while self.end_pos < len(self.data):
-            if self.data[self.end_pos].isalnum():
+            if self.data[self.end_pos].isalnum() or self.data[self.end_pos] in ['.', '-', '_', '/']:
                 self.end_pos += 1
             else:
                 break
