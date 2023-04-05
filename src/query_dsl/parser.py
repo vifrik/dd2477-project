@@ -94,12 +94,8 @@ class Parser(object):
         return {
             "bool": {
                 operation: [
-                    {
-                        "match": left_operand,
-                    },
-                    {
-                        "match": right_operand
-                    }
+                    left_operand,
+                    right_operand
                 ]
             }
         }
@@ -112,7 +108,11 @@ class Parser(object):
             if isinstance(token, Query):
                 if token.query_type not in LOOKUP:
                     raise LookupException(f"{token.query_type} not in lookup table")
-                operand_stack.append({LOOKUP[token.query_type]: token.query_value})
+                operand_stack.append({
+                    "match": {
+                        LOOKUP[token.query_type]: token.query_value
+                    }
+                })
             elif isinstance(token, lexer.Operator):
                 left_operand = operand_stack.pop()
                 right_operand = operand_stack.pop()
@@ -126,16 +126,6 @@ class Parser(object):
 
     def get_elasticsearch_query(self, tokens, json_format=False):
         ast = self.evaluate_postfix(tokens)
-        if "bool" not in ast:
-            query = {
-                "match": ast
-            }
-        else:
-            query = {
-                "bool": {
-                    "must": self.evaluate_postfix(tokens)
-                }
-            }
         if json_format:
-            return json.dumps(query, indent=4)
-        return query
+            return json.dumps(ast, indent=4)
+        return ast
