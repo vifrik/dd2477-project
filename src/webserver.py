@@ -19,18 +19,28 @@ def get_elastic_query(query):
 
 @app.route("/query")
 def query():
-    query = request.args.get("q")
-    return json.dumps(get_elastic_query(query))
+    try:
+        query = request.args.get("q")
+        return json.dumps(get_elastic_query(query))
+    except query_dsl.parser.SyntaxError as e:
+        return {
+            "error": str(e)
+        }
 
 
 
 @app.route("/search")
 def seach():
-    query = request.args.get("q")
-    index = request.args.get("index")
-    body = get_elastic_query(query)
-    response = es.search(index=index, query=body)
-    return json.dumps(response.body)
+    try:
+        query = request.args.get("q")
+        index = request.args.get("index")
+        body = get_elastic_query(query)
+        response = es.search(index=index, query=body)
+        return json.dumps(response.body)
+    except query_dsl.parser.SyntaxError as e:
+        return {
+            "error": str(e)
+        }
 
 
 if __name__ == "__main__":
