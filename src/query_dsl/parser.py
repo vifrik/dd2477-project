@@ -31,7 +31,7 @@ class ListHelper(object):
         self.check_size()
         self.current += 1
         return self.tokens[self.current - 1]
-
+    
 class Query(object):
     def __init__(self, query_type, query_value):
         self.query_type = query_type
@@ -45,6 +45,14 @@ class Parser(object):
     def __init__(self, tokens):
         self.tokens = ListHelper(tokens)
 
+    def check_grammar(self, class_expected, token):
+        class_name = class_expected.__name__
+        if self.tokens.is_empty():
+            raise SyntaxError(f"Expected {class_name} after {token.value}, got nothing")
+        if not isinstance(new_token := self.tokens.pop(), class_expected):
+            raise SyntaxError(f"Expected {class_name} after {token.value}, got {new_token.value} instead")
+        return new_token
+
     def parse(self):
         precedence = {'OR': 1, 'AND': 2}
 
@@ -55,11 +63,9 @@ class Parser(object):
             token = self.tokens.pop()
 
             if isinstance(token, lexer.Keyword):
-                if not isinstance(binder := self.tokens.pop(), lexer.Binder):
-                    raise SyntaxError(f"Missing Binder after {token.value}, got {binder.value} instead")
-                if not isinstance(identifier := self.tokens.pop(), lexer.Identifier):
-                    raise SyntaxError(f"Missing Identifier after {token.value}, got {identifier.value} instead")
-                output_queue.append(Query(token.value, identifier.value))
+                self.check_grammar(lexer.Binder, token)
+                new_token = self.check_grammar(lexer.Binder, token)
+                output_queue.append(Query(token.value, new_token.value))
             elif isinstance(token, lexer.Operator):
                 while operator_stack and isinstance(operator_stack[-1], lexer.Operator) and precedence[operator_stack[-1].value] >= precedence[token.value]:
                     output_queue.append(operator_stack.pop())
