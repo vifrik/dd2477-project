@@ -7,8 +7,8 @@ class TestTokenizer(unittest.TestCase):
     def test_tokenize(self):
         query = """returnType:int 
             AND (
-            functionName:hello OR 
-        functionName:hallo )
+            methodName:hello OR 
+        methodName:hallo )
         """
         tokens = lexer.tokenize(query)
         correct = [
@@ -17,11 +17,11 @@ class TestTokenizer(unittest.TestCase):
             ('Identifier', 'int'),
             ('Operator', 'AND'),
             ('Separator', '('),
-            ('Keyword', 'functionName'),
+            ('Keyword', 'methodName'),
             ('Binder', ':'),
             ('Identifier', 'hello'),
             ('Operator', 'OR'),
-            ('Keyword', 'functionName'),
+            ('Keyword', 'methodName'),
             ('Binder', ':'),
             ('Identifier', 'hallo'),
             ('Separator', ')')

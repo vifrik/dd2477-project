@@ -23,9 +23,9 @@ class Keyword(Token):
         "repo",
         "import",
         "package",
-        # function (method)
-        "functionName",
-        "functionModifier",
+        # method
+        "methodName",
+        "methodModifier",
         "returnType",
         "functionAnnotation",
         "parameterName",
