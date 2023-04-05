@@ -1,3 +1,5 @@
+from . import lexer
+
 class ParserError(Exception):
     pass
 
@@ -27,62 +29,44 @@ class ListHelper(object):
         self.current += 1
         return self.tokens[self.current - 1]
 
+class Query(object):
+    def __init__(self, query_type, query_value):
+        self.query_type = query_type
+        self.query_value = query_value
+
+    def __repr__(self):
+        return "<%s '%s'>" % (self.query_type, self.query_value)
+
 
 class Parser(object):
     def __init__(self, tokens):
-        self.tokens = ListHelper(list(tokens))
+        self.tokens = ListHelper(tokens)
 
     def parse(self):
         precedence = {'OR': 1, 'AND': 2}
 
         operator_stack = []
-        operand_stack = []
+        output_queue = []
 
-        # Iterate over the tokens
         while not self.tokens.is_empty():
             token = self.tokens.pop()
-            token_type = token.__class__.__name__
-            token_value = token.value
 
-            if token_type == 'Keyword':
-                sub_list = []
-                sub_list.append(token_value)
+            if isinstance(token, lexer.Keyword):
                 self.tokens.pop()
-                sub_list.append(self.tokens.pop().value)
-                operand_stack.append(sub_list)
-            elif token_type == 'Operator':
-                while operator_stack and operator_stack[-1] != '(' and \
-                    precedence[operator_stack[-1]] >= precedence[token_value]:
-                    op = operator_stack.pop()
-                    right = operand_stack.pop()
-                    left = operand_stack.pop()
-                    operand_stack.append(f'({op} {left} {right})')
-                # Push the new operator onto the stack
-                operator_stack.append(token_value)
-            elif token_type == 'Separator' and token_value == '(':
-                operator_stack.append(token_value)
-            elif token_type == 'Separator' and token_value == ')':
-                while operator_stack and operator_stack[-1] != '(':
-                    op = operator_stack.pop()
-                    right = operand_stack.pop()
-                    left = operand_stack.pop()
-                    operand_stack.append(f'({left} {op} {right})')
-                if operator_stack and operator_stack[-1] == '(':
-                    operator_stack.pop()
-                else:
-                    raise ValueError('Mismatched parentheses')
-            else:
-                # Raise an error for unknown token types
-                raise ValueError(f'Unknown token type: {token_type}')
-
+                output_queue.append(Query(token.value, self.tokens.pop().value))
+            elif isinstance(token, lexer.Operator):
+                while operator_stack and isinstance(operator_stack[-1], lexer.Operator) and precedence[operator_stack[-1].value] >= precedence[token.value]:
+                    output_queue.append(operator_stack.pop())
+                operator_stack.append(token)
+            elif isinstance(token, lexer.Separator):
+                if token.value == '(':
+                    operator_stack.append(token)
+                elif token.value == ')':
+                    while operator_stack and operator_stack[-1].value != '(':
+                        output_queue.append(operator_stack.pop())
+                    if operator_stack and operator_stack[-1].value == '(':
+                        operator_stack.pop()
         while operator_stack:
-            op = operator_stack.pop()
-            if op == '(':
-                raise ValueError('Mismatched parentheses')
-            right = operand_stack.pop()
-            left = operand_stack.pop()
-            operand_stack.append(f'({op} {left} {right})')
+            output_queue.append(operator_stack.pop())
 
-        # The final expression is on the top of the operand stack
-        final_expression = operand_stack[-1]
-        print(final_expression)
+        return output_queue
