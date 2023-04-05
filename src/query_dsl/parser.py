@@ -3,11 +3,12 @@ import json
 from . import lexer
 from .keyword_mapping import LOOKUP, LookupException
 
+
 class SyntaxError(Exception):
     pass
 
 
-class EmptyListExpection(Exception):
+class EmptyListException(Exception):
     pass
 
 
@@ -21,7 +22,7 @@ class ListHelper(object):
 
     def check_size(self):
         if self.is_empty():
-            raise EmptyListExpection()
+            raise EmptyListException()
 
     def peek(self):
         self.check_size()
@@ -31,7 +32,8 @@ class ListHelper(object):
         self.check_size()
         self.current += 1
         return self.tokens[self.current - 1]
-    
+
+
 class Query(object):
     def __init__(self, query_type, query_value):
         self.query_type = query_type
@@ -54,7 +56,7 @@ class Parser(object):
         return new_token
 
     def parse(self):
-        precedence = {'OR': 1, 'AND': 2}
+        precedence = {"OR": 1, "AND": 2}
 
         operator_stack = []
         output_queue = []
@@ -71,12 +73,12 @@ class Parser(object):
                     output_queue.append(operator_stack.pop())
                 operator_stack.append(token)
             elif isinstance(token, lexer.Separator):
-                if token.value == '(':
+                if token.value == "(":
                     operator_stack.append(token)
-                elif token.value == ')':
-                    while operator_stack and operator_stack[-1].value != '(':
+                elif token.value == ")":
+                    while operator_stack and operator_stack[-1].value != "(":
                         output_queue.append(operator_stack.pop())
-                    if operator_stack and operator_stack[-1].value == '(':
+                    if operator_stack and operator_stack[-1].value == "(":
                         operator_stack.pop()
                     else:
                         raise SyntaxError("Missmatched parenthesis")
@@ -84,7 +86,7 @@ class Parser(object):
                 raise SyntaxError(f"Expected Keyword, got {token.value} instead")
         while operator_stack:
             operator = operator_stack.pop()
-            if operator.value == '(':
+            if operator.value == "(":
                 raise SyntaxError("Missmatched parenthesis")
             output_queue.append(operator)
 
@@ -106,7 +108,6 @@ class Parser(object):
             }
         }
 
-
     def evaluate_postfix(self, tokens):
         operand_stack = []
 
@@ -120,6 +121,7 @@ class Parser(object):
                     }
                 })
             elif isinstance(token, lexer.Operator):
+                # TODO add SyntaxError here if operand does not exist
                 left_operand = operand_stack.pop()
                 right_operand = operand_stack.pop()
                 if token.value == "AND" or token.value == "OR":

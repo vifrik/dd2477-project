@@ -4,8 +4,9 @@ import json
 
 import query_dsl
 
-es = Elasticsearch('https://elastic.åt.se:443')
+es = Elasticsearch("https://elastic.åt.se:443")
 app = Flask(__name__)
+
 
 def get_elastic_query(query):
     lexer = query_dsl.lexer.Lexer(query)
@@ -26,7 +27,6 @@ def query():
         return {
             "error": str(e)
         }
-
 
 
 @app.route("/search")

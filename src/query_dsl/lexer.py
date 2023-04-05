@@ -1,5 +1,6 @@
 from .keyword_mapping import LOOKUP
 
+
 class LexerError(Exception):
     pass
 

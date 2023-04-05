@@ -12,19 +12,19 @@ class TestTokenizer(unittest.TestCase):
         """
         tokens = lexer.tokenize(query)
         correct = [
-            ('Keyword', 'returnType'),
-            ('Binder', ':'),
-            ('Identifier', 'int'),
-            ('Operator', 'AND'),
-            ('Separator', '('),
-            ('Keyword', 'methodName'),
-            ('Binder', ':'),
-            ('Identifier', 'hello'),
-            ('Operator', 'OR'),
-            ('Keyword', 'methodName'),
-            ('Binder', ':'),
-            ('Identifier', 'hallo'),
-            ('Separator', ')')
+            ("Keyword", "returnType"),
+            ("Binder", ":"),
+            ("Identifier", "int"),
+            ("Operator", "AND"),
+            ("Separator", "("),
+            ("Keyword", "methodName"),
+            ("Binder", ":"),
+            ("Identifier", "hello"),
+            ("Operator", "OR"),
+            ("Keyword", "methodName"),
+            ("Binder", ":"),
+            ("Identifier", "hallo"),
+            ("Separator", ")")
         ]
         for token, (class_name, value) in zip(tokens, correct):
             self.assertTrue(token.__class__.__name__ == class_name,
