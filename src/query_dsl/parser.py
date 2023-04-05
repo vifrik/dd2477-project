@@ -1,3 +1,5 @@
+import json
+
 from . import lexer
 
 class ParserError(Exception):
@@ -70,3 +72,21 @@ class Parser(object):
             output_queue.append(operator_stack.pop())
 
         return output_queue
+
+
+    def evaluate_postfix(self, tokens):
+        operand_stack = []
+
+        for token in tokens:
+            if isinstance(token, Query):
+                operand_stack.append({token.query_type:token.query_value})
+            elif isinstance(token, lexer.Operator):
+                left_operand = operand_stack.pop()
+                right_operand = operand_stack.pop()
+                if token.value == 'AND':
+                    result = {'AND': [left_operand, right_operand]}
+                elif token.value == 'OR':
+                    result = {'OR': [left_operand, right_operand]}
+                operand_stack.append(result)
+
+        return operand_stack.pop()
