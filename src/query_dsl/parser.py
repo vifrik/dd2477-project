@@ -2,7 +2,7 @@ import json
 
 from . import lexer
 
-class ParserError(Exception):
+class SyntaxError(Exception):
     pass
 
 
@@ -54,8 +54,11 @@ class Parser(object):
             token = self.tokens.pop()
 
             if isinstance(token, lexer.Keyword):
-                self.tokens.pop()
-                output_queue.append(Query(token.value, self.tokens.pop().value))
+                if not isinstance(binder := self.tokens.pop(), lexer.Binder):
+                    raise SyntaxError(f"Missing Binder after {token.value}, got {binder.value} instead")
+                if not isinstance(identifier := self.tokens.pop(), lexer.Identifier):
+                    raise SyntaxError(f"Missing Identifier after {token.value}, got {identifier.value} instead")
+                output_queue.append(Query(token.value, identifier.value))
             elif isinstance(token, lexer.Operator):
                 while operator_stack and isinstance(operator_stack[-1], lexer.Operator) and precedence[operator_stack[-1].value] >= precedence[token.value]:
                     output_queue.append(operator_stack.pop())
@@ -68,11 +71,17 @@ class Parser(object):
                         output_queue.append(operator_stack.pop())
                     if operator_stack and operator_stack[-1].value == '(':
                         operator_stack.pop()
+                    else:
+                        raise SyntaxError("Missmatched parenthesis")
+            else:
+                raise SyntaxError(f"Expected Keyword, got {token.value} instead")
         while operator_stack:
-            output_queue.append(operator_stack.pop())
+            operator = operator_stack.pop()
+            if operator.value == '(':
+                raise SyntaxError("Missmatched parenthesis")
+            output_queue.append(operator)
 
         return output_queue
-
 
     def evaluate_postfix(self, tokens):
         operand_stack = []
@@ -87,6 +96,8 @@ class Parser(object):
                     result = {'AND': [left_operand, right_operand]}
                 elif token.value == 'OR':
                     result = {'OR': [left_operand, right_operand]}
+                else:
+                    raise SyntaxError(f"Unrecognized operator {token.value}")
                 operand_stack.append(result)
 
         return operand_stack.pop()
