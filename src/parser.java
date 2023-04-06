@@ -131,6 +131,8 @@ public class Main {
 
             jsonObject.put("name", variableDeclarator.getNameAsString());
             jsonObject.put("position", getPositionJson(variableDeclarator.getRange()));
+
+            jsonArray.put(jsonObject);
         }
     }
 
