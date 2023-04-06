@@ -37,6 +37,7 @@ public class Main {
             JSONObject jsonObject = new JSONObject();
 
             jsonObject.put("name", classDeclaration.getNameAsString());
+            jsonObject.put("name_position", getPositionJson(classDeclaration.getName().getRange()));
             jsonObject.put("position", getPositionJson(classDeclaration.getRange()));
 
             JSONArray modifiers = new JSONArray();
@@ -68,8 +69,10 @@ public class Main {
             JSONObject jsonObject = new JSONObject();
 
             jsonObject.put("name", methodDeclaration.getNameAsString());
-            jsonObject.put("position", getPositionJson(methodDeclaration.getRange()));
+            jsonObject.put("name_position", getPositionJson(methodDeclaration.getName().getRange()));
             jsonObject.put("return_type", methodDeclaration.getTypeAsString());
+            jsonObject.put("return_type_position", getPositionJson(methodDeclaration.getType().getRange()));
+            jsonObject.put("position", getPositionJson(methodDeclaration.getRange()));
 
             JSONArray modifiers = new JSONArray();
             methodDeclaration.getModifiers().forEach(modifier -> {
@@ -109,6 +112,7 @@ public class Main {
             JSONObject jsonObject = new JSONObject();
 
             jsonObject.put("name", fieldDeclaration.getVariable(0).getNameAsString());
+            jsonObject.put("name_position", getPositionJson(fieldDeclaration.getVariable(0).getName().getRange()));
             jsonObject.put("position", getPositionJson(fieldDeclaration.getRange()));
 
             JSONArray modifiers = new JSONArray();
@@ -130,6 +134,7 @@ public class Main {
             JSONObject jsonObject = new JSONObject();
 
             jsonObject.put("name", variableDeclarator.getNameAsString());
+            jsonObject.put("name_position", getPositionJson(variableDeclarator.getName().getRange()));
             jsonObject.put("position", getPositionJson(variableDeclarator.getRange()));
 
             jsonArray.put(jsonObject);
