@@ -31,7 +31,7 @@ services:
       
   scrape-webserver:
     container_name: scrape_server
-    build: "./scraper_Dockerfile"
+    build: "scrape_server"
     image: "scrape-webserver"
     restart: always
     ports:

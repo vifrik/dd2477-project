@@ -1,0 +1,5 @@
+python-dotenv==1.0.0
+pymongo
+PyGithub==1.58.1
+flask==2.2.3
+python-dotenv==1.0.0
