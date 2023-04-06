@@ -4,7 +4,16 @@ import json
 
 import query_dsl
 
-es = Elasticsearch("https://elastic.åt.se:443")
+
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+if os.getenv("MODE") == "prod":
+    es = Elasticsearch(os.getenv("ELASTIC_ENDPOINT"))
+else:
+    es = Elasticsearch("https://elastic.åt.se:443", basic_auth=(os.getenv("AUTH_USER"), os.getenv("AUTH_PASSWORD")))
+
 app = Flask(__name__)
 
 
