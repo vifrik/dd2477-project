@@ -17,6 +17,15 @@ services:
       xpack.license.self_generated.type: basic
     networks:
       - elastic
+      
+  query-webserver:
+    build: "."
+    image: "query-webserver"
+    restart: always
+    ports:
+      - "5000:5000"
+    networks:
+      - elastic
 
 networks:
   elastic:
