@@ -1,7 +1,8 @@
 version: '3.8'
-
+name: dd2477
 services:
   elasticsearch:
+    container_name: es01
     image: elasticsearch:8.6.2
     restart: always
     volumes: 
@@ -13,12 +14,13 @@ services:
       cluster.name: docker-cluster
       cluster.initial_master_nodes: es01
       ES_JAVA_OPTS: "-Xms2g -Xmx2g"
-      xpack.security.enabled: "false"
+      xpack.security.enabled: false
       xpack.license.self_generated.type: basic
     networks:
       - elastic
       
   query-webserver:
+    container_name: webserver
     build: "."
     image: "query-webserver"
     restart: always
