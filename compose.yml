@@ -35,7 +35,7 @@ services:
     image: "scrape-webserver"
     restart: always
     ports:
-      - "6000:6000"
+      - "5001:5001"
     networks:
       - elastic
 
