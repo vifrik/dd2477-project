@@ -28,6 +28,16 @@ services:
       - "5000:5000"
     networks:
       - elastic
+      
+  scrape-webserver:
+    container_name: scrape_server
+    build: "./scraper_Dockerfile"
+    image: "scrape-webserver"
+    restart: always
+    ports:
+      - "6000:6000"
+    networks:
+      - elastic
 
 networks:
   elastic:
