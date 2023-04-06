@@ -1,7 +1,8 @@
 import argparse
+import os.path
 
 from scraper import Scraper
-from parser import Parser
+from parserhelper import ParserHelper
 from elastic import Elastic
 from credentials import token
 
@@ -12,12 +13,15 @@ def scrape(args):
 
 
 def parse(args):
-    parser = Parser("data/java", "metadata.json")
-    for json_object in parser.parse_folder():
-        if args.upload:
-            upload(args, json_object)
-        else:
-            print(json_object)
+    parser_path = "../bin/parser.jar"
+    path = "../other/sample_java"
+    metadata_path = os.path.join(path, "metadata.json")
+    parser = ParserHelper(parser_path, path, metadata_path)
+    json_array = parser.parse_folder()
+    if args.upload:
+        upload(args, json_array)
+    else:
+        print(json_array)
 
 
 def upload(args, json_object):
@@ -27,7 +31,7 @@ def upload(args, json_object):
         args.delete = False
         elastic.delete()
 
-    elastic.upload(json_object)
+    elastic.upload_bulk(json_object)
 
 
 def parse_args():
