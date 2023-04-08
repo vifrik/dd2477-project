@@ -3,3 +3,4 @@ elasticsearch==8.6.2
 javalang==0.13.0
 flask==2.2.3
 python-dotenv==1.0.0
+./query_dsl
