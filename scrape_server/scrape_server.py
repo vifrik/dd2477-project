@@ -29,9 +29,6 @@ def get_stars():
         yield (min_stars, max_stars)
         max_stars = min_stars - 1
 
-for (min_stars, max_stars) in get_stars():
-    print(min_stars, max_stars)
-
 def get_repos():
     min_stars, max_stars = next(get_stars())
     rate_limit = g.get_rate_limit()

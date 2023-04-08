@@ -6,13 +6,12 @@ from dotenv import load_dotenv
 
 
 def approximate_repos_with_stars(stars):
-    """Approximates the number of repos with a number of stars using an exponential curve.
-    The parameters of the curve were found by using `fit_exponential_curve`."""
+    """Approximates the number of Java repos with a given number of stars using a power law.
+    The parameters of the curve were found by using `fit_power_function`."""
     return 238015 * stars**-1.61190
 
-
-def fit_exponential_curve():
-    """Fits an exponential curve to the data."""
+def fit_power_function():
+    """Fits a power function to the data."""
     load_dotenv()
     token = os.getenv("GH_TOKEN")
     if token is None:
@@ -30,9 +29,5 @@ def fit_exponential_curve():
 
     data = data[data[:, 1] != 0]
 
-    # Fit an exponential curve to the data
     fit = np.polyfit(np.log(data[:, 0]), np.log(data[:, 1]), 1)
     return np.exp(fit[1]), fit[0]
-
-
-fit_exponential_curve()
