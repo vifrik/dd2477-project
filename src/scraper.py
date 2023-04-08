@@ -1,9 +1,14 @@
 from github import Github
+from github.PaginatedList import PaginatedList
 from github.GithubException import RateLimitExceededException
 from time import sleep
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
+import ijson
+from dotenv import load_dotenv
+from credentials import token
+import requests
 
 
 EXTENSIONS = {
@@ -17,41 +22,66 @@ EXTENSIONS = {
 
 
 class Scraper:
+    """
+    Scrapes GitHub for files of a given language and saves them to disk.
+    """
+
     def __init__(
         self,
-        token,
+        gh_token=token,
         language="Java",
-        dates=(datetime.now() - timedelta(days=7), datetime.now()),
+        peek_endpoint="https://scrape.åt.se/peek",
+        fetch_endpoint="https://scrape.åt.se/fetch",
         path="data",
+        check_for_duplicates=False,
     ):
-        assert language in EXTENSIONS, "Language not supported"
-        assert all(
-            (isinstance(date, datetime) for date in dates)
-        ), "Dates must be datetime objects"
-        assert len(dates) == 2, "Must provide start and end dates"
-        assert dates[0] < dates[1], "Start date must be before end date"
+        """
+        Initializes the scraper.
 
-        self.g = Github(token)
+        :param gh_token: GitHub token
+        :param language: Language to scrape
+        :param peek_endpoint: Endpoint to peek at the number of repos left
+        :param fetch_endpoint: Endpoint to fetch a list of repo URLs
+        :param path: Path to save the files to
+        :param check_for_duplicates: Try to avoid scraping the same repo twice
+        """
+        assert language in EXTENSIONS, "Language not supported"
+
+        load_dotenv()
+        self.username = os.getenv("AUTH_USER")
+        self.password = os.getenv("AUTH_PASSWORD")
+        assert self.username and self.password, "Username and password not set"
+
+        self.g = Github(gh_token)
         self.path = os.path.join(path, EXTENSIONS[language])
         self.metadata_path = os.path.join(self.path, "metadata.json")
-        self.language = language
         self.extension = EXTENSIONS[language]
-        self.dates = dates
+        self.peek_endpoint = peek_endpoint
+        self.fetch_endpoint = fetch_endpoint
+        self.check_for_duplicates = check_for_duplicates
         self.scraped_repos = set()
         self.scraped_file_count = 0
 
         self.path_setup()
 
-    # Create the directory and metadata file if they don't exist.
     def path_setup(self):
+        """
+        Creates the directory and metadata file if they don't exist.
+        """
         os.makedirs(self.path, exist_ok=True)
         try:
+            if self.check_for_duplicates:
+                with open(self.metadata_path, "r") as f:
+                    for _, file in ijson.kvitems(f, ""):
+                        self.scraped_repos.add(file["repo"])
             self.metadata_file = open(self.metadata_path, "r+")
-            metadata = json.load(self.metadata_file)
-            self.scraped_repos = set([file["repo"] for file in metadata.values()])
             # Remove the closing brace and add a comma
             self.metadata_file.seek(0, 2)
-            self.metadata_file.seek(self.metadata_file.tell() - 3, 0)
+            # Seek back depending on the OS newline character
+            if os.linesep == "\r\n":
+                self.metadata_file.seek(self.metadata_file.tell() - 3, 0)
+            else:
+                self.metadata_file.seek(self.metadata_file.tell() - 2, 0)
             self.metadata_file.truncate()
             self.metadata_file.write(",\n")
 
@@ -62,73 +92,112 @@ class Scraper:
             self.metadata_file = open(self.metadata_path, "r+")
             self.metadata_file.seek(0, 2)
 
+    def has_more(self):
+        """
+        Checks if there are more repos to scrape.
+        """
+        num_repos = int(
+            requests.get(self.peek_endpoint, auth=(self.username, self.password)).text
+        )
+        return num_repos > 0
+
+    def fetch(self):
+        """
+        Fetches a list of repos from the server.
+        """
+        return list(
+            requests.get(
+                self.fetch_endpoint,
+                auth=(self.username, self.password),
+            ).json()
+        )
+
+    def wait(self):
+        """
+        Waits until the core rate limit resets.
+        """
+        reset = self.g.get_rate_limit().core.reset
+        print(f"Rate limit exceeded, sleeping until {reset}")
+        sleep((reset - datetime.now()).total_seconds() + 1)
+
     def get_repos(self):
-        # One week at a time
-        start, end = self.dates
-        rate_limit = self.g.get_rate_limit()
-        while rate_limit.search.remaining > 0:
-            try:
-                yield self.g.search_repositories(
-                    f"language:{self.language} created:{start.isoformat()}..{end.isoformat()}",
-                    sort="stars",
-                )
-                start, end = start - timedelta(days=7), start
-            except RateLimitExceededException:
-                print("Rate limit exceeded, sleeping for one minute")
-                sleep(60)
-            finally:
-                rate_limit = self.g.get_rate_limit()
-                print(f"Rate limit remaining: {rate_limit.search.remaining}")
+        """
+        Generates all repos to scrape.
+        """
+        while self.has_more():
+            repo_urls = self.fetch()
+            for repo_url in repo_urls:
+                parts = repo_url.split("/")
+                full_name = parts[-2] + "/" + parts[-1]
+                try:
+                    yield self.g.get_repo(full_name)
+                except RateLimitExceededException:
+                    self.wait()
+                    yield self.g.get_repo(full_name)
+                except Exception as e:
+                    print(f"Could not get repo: {e}")
 
-    # Generate all files in a repo.
-    def get_files(self):
-        rate_limit = self.g.get_rate_limit()
-        while rate_limit.core.remaining > 0:
-            try:
-                for file in self.repo.get_contents(""):
-                    yield from self._get_files(file)
-                break
-            except RateLimitExceededException:
-                print("Rate limit exceeded, sleeping for one hour")
-                sleep(60 * 60)
-                rate_limit = self.g.get_rate_limit()
-                print(f"Rate limit remaining: {rate_limit.core.remaining}")
-            except Exception as e:
-                print(f"Could not get files: {e}")
-                break
-
-    # Step through directories recursively
-    def _get_files(self, file):
-        if file.type == "dir":
-            for f in self.repo.get_contents(file.path):
-                yield from self._get_files(f)
-        elif file.path.endswith(self.extension):
-            yield file
+    def get_files(self, repo):
+        """
+        Generates all files in a repo.
+        """
+        try:
+            contents = repo.get_contents("")
+            while contents:
+                file_content = contents.pop(0)
+                if file_content.type == "dir":
+                    contents.extend(repo.get_contents(file_content.path))
+                elif file_content.path.endswith(self.extension):
+                    yield file_content
+        except RateLimitExceededException:
+            self.wait()
+            yield from self.get_files(repo)
+        except Exception as e:
+            print(f"Could not get files: {e}")
 
     def get_code(self, file):
-        rate_limit = self.g.get_rate_limit()
-        if rate_limit.core.remaining > 0:
-            try:
-                return file.decoded_content
-            except Exception as e:
-                print(f"Could not get code: {e}")
+        """
+        Gets the code from a file.
+        """
+        try:
+            return file.decoded_content.decode("utf-8")
+        except UnicodeDecodeError:
+            return None
+
+    def get_commit_hash(self, repo, file):
+        """
+        Gets the hash of the latest commit of a file.
+        """
+        try:
+            commit = repo.get_commits(path=file.path)
+            if isinstance(commit, PaginatedList):
+                commit = commit[0]
+            return commit.sha
+        except RateLimitExceededException:
+            self.wait()
+            return self.get_commit_hash(repo, file)
 
     def save_file(self, name, content, **kwargs):
-        file_path = os.path.join(self.path, name)
+        """
+        Saves a file to disk and writes metadata to metadata.json.
+        """
+        file_path = os.path.join(self.path, name.lower())
         base, ext = os.path.splitext(name)
         count = 1
         filename = name
         while os.path.exists(file_path):
             # Add a number to the end of clashing filenames
             filename = f"{base}_{count}{ext}"
-            file_path = os.path.join(self.path, filename)
+            file_path = os.path.join(self.path, filename.lower())
             count += 1
-        with open(file_path, "wb") as f:
-            try:
+        file_path = os.path.join(self.path, filename)
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            except Exception as e:
-                print(f"Could not write file: {e}")
-                return False
+        except Exception as e:
+            print(f"Could not write file: {e}")
+            os.remove(file_path)
+            return False
         metadata = {
             "name": name,
             "given_name": filename,
@@ -142,43 +211,57 @@ class Scraper:
             return False
 
     def run(self):
+        """
+        Runs the scraper.
+        """
         try:
-            for repos in self.get_repos():
-                for repo in repos:
-                    self.repo = repo
-                    if repo.full_name in self.scraped_repos:
-                        print(f"Already scraped {repo.full_name}")
+            for repo in self.get_repos():
+                if self.check_for_duplicates and repo.full_name in self.scraped_repos:
+                    print(f"Already scraped {repo.full_name}, skipping")
+                    continue
+                encoding_errors = 0
+                print(f"Scraping {repo.full_name}")
+                for file in self.get_files(repo):
+                    code = self.get_code(file)
+                    if not code:
+                        encoding_errors += 1
+                        if encoding_errors > 10:
+                            print("Too many encoding errors, skipping repo")
+                            break
                         continue
-                    print(f"Scraping {repo.full_name}")
-                    for file in self.get_files():
-                        rate_limit = self.g.get_rate_limit()
-                        code = self.get_code(file)
-                        if code:
-                            if self.save_file(
-                                file.name,
-                                code,
-                                repo=repo.full_name,
-                                path=file.path,
-                                html_url=file.html_url,
-                                download_url=file.download_url,
-                            ):
-                                self.scraped_file_count += 1
-                                if self.scraped_file_count % 100 == 0:
-                                    print(
-                                        f"Saved {self.scraped_file_count} files. (Rate limit remaining: {rate_limit.core.remaining})"
-                                    )
-                    self.scraped_repos.add(repo.full_name)
+                    sha = self.get_commit_hash(repo, file)
+                    download_url = f"https://raw.githubusercontent.com/{repo.full_name}/{sha}/{file.path}"
+                    if self.save_file(
+                        file.name,
+                        code,
+                        repo=repo.full_name,
+                        path=file.path,
+                        commit_sha=sha,
+                        download_url=download_url,
+                    ):
+                        self.scraped_file_count += 1
+                        if self.scraped_file_count % 100 == 0:
+                            print(
+                                f"Saved {self.scraped_file_count} files. (Rate limit remaining: {self.g.get_rate_limit().core.remaining})"
+                            )
+                self.scraped_repos.add(repo.full_name)
         except Exception as e:
-            print(f"Could not scrape: {e}")
+            print(f"Uncaught exception while scraping: {e}")
         finally:
+            if self.metadata_file.tell() < 4:
+                print("Deleting empty metadata file")
+                self.metadata_file.close()
+                os.remove(self.metadata_path)
+                return
             # Fix metadata file before closing
-            self.metadata_file.seek(self.metadata_file.tell() - 3, 0)
+            if os.linesep == "\r\n":
+                self.metadata_file.seek(self.metadata_file.tell() - 3, 0)
+            else:
+                self.metadata_file.seek(self.metadata_file.tell() - 2, 0)
             self.metadata_file.write("\n}")
             self.metadata_file.close()
 
 
 if __name__ == "__main__":
-    # NOTE: Replace with a valid token
-    token = "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"
-    scraper = Scraper(token)
+    scraper = Scraper()
     scraper.run()
