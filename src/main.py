@@ -1,14 +1,17 @@
 import argparse
 import os.path
+import os
+from dotenv import load_dotenv
 
 from scraper import Scraper
 from parserhelper import ParserHelper
 from elastic import Elastic
-from credentials import token
+
+load_dotenv()
 
 
 def scrape(args):
-    crawler = Scraper(token)
+    crawler = Scraper(gh_token=os.getenv("TOKEN"))
     crawler.run()
 
 
