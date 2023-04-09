@@ -1,11 +1,8 @@
 import json
 
 from . import lexer
+from .error import DslSyntaxError
 from .keyword_mapping import LOOKUP, LookupException
-
-
-class SyntaxError(Exception):
-    pass
 
 
 class EmptyListException(Exception):
@@ -50,9 +47,9 @@ class Parser(object):
     def check_grammar(self, class_expected, token):
         class_name = class_expected.__name__
         if self.tokens.is_empty():
-            raise SyntaxError(f"Expected {class_name} after {token.value}, got nothing")
+            raise DslSyntaxError(f"Expected {class_name} after {token.value}, got nothing")
         if not isinstance(new_token := self.tokens.pop(), class_expected):
-            raise SyntaxError(f"Expected {class_name} after {token.value}, got {new_token.value} instead")
+            raise DslSyntaxError(f"Expected {class_name} after {token.value}, got {new_token.value} instead")
         return new_token
 
     def parse(self):
@@ -81,13 +78,13 @@ class Parser(object):
                     if operator_stack and operator_stack[-1].value == "(":
                         operator_stack.pop()
                     else:
-                        raise SyntaxError("Missmatched parenthesis")
+                        raise DslSyntaxError("Missmatched parenthesis")
             else:
-                raise SyntaxError(f"Expected Keyword, got {token.value} instead")
+                raise DslSyntaxError(f"Expected Keyword, got {token.value} instead")
         while operator_stack:
             operator = operator_stack.pop()
             if operator.value == "(":
-                raise SyntaxError("Missmatched parenthesis")
+                raise DslSyntaxError("Missmatched parenthesis")
             output_queue.append(operator)
 
         return output_queue
@@ -121,13 +118,14 @@ class Parser(object):
                     }
                 })
             elif isinstance(token, lexer.Operator):
-                # TODO add SyntaxError here if operand does not exist
+                if len(operand_stack) < 2:
+                    raise DslSyntaxError(f"Not enough operands provided for {token.value}")
                 left_operand = operand_stack.pop()
                 right_operand = operand_stack.pop()
                 if token.value == "AND" or token.value == "OR":
                     result = self.enclose_json(token.value, left_operand, right_operand)
                 else:
-                    raise SyntaxError(f"Unrecognized operator {token.value}")
+                    raise DslSyntaxError(f"Unrecognized operator {token.value}")
                 operand_stack.append(result)
 
         return operand_stack.pop()

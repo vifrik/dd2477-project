@@ -1,0 +1,2 @@
+class DslSyntaxError(Exception):
+    pass

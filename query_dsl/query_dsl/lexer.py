@@ -1,4 +1,5 @@
 from .keyword_mapping import LOOKUP
+from .error import DslSyntaxError
 
 
 class LexerError(Exception):
@@ -68,6 +69,9 @@ class Lexer(object):
     def __init__(self, data):
         self.cur_pos = 0
         self.end_pos = 0
+
+        if data is None:
+            raise DslSyntaxError("Expected data, got NoneType")
 
         self.data = data
         self.length = len(data)
