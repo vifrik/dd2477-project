@@ -9,12 +9,12 @@ LOOKUP = {
     "import": "metadata.imports",
     "package": "metadata.package",
     # method
-    "methodName": "functions.name",
-    "methodModifier": "functions.modifiers",
-    "returnType": "functions.return_type",
-    "functionAnnotation": "functions.annotations",
-    "parameterName": "functions.parameters.name",
-    "parameterType": "functions.parameters.type",
+    "methodName": "methods.name",
+    "methodModifier": "methods.modifiers",
+    "returnType": "methods.return_type",
+    "functionAnnotation": "methods.annotations",
+    "parameterName": "methods.parameters.name",
+    "parameterType": "methods.parameters.type",
     # class
     "className": "classes.name",
     "classModifier": "classes.modifiers",
