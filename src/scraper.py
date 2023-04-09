@@ -7,8 +7,9 @@ from datetime import datetime
 import json
 import ijson
 from dotenv import load_dotenv
-from credentials import token
 import requests
+
+load_dotenv()
 
 
 EXTENSIONS = {
@@ -28,7 +29,7 @@ class Scraper:
 
     def __init__(
         self,
-        gh_token=token,
+        gh_token=os.getenv("TOKEN"),
         language="Java",
         peek_endpoint="https://scrape.åt.se/peek",
         fetch_endpoint="https://scrape.åt.se/fetch",
@@ -47,7 +48,6 @@ class Scraper:
         """
         assert language in EXTENSIONS, "Language not supported"
 
-        load_dotenv()
         self.username = os.getenv("AUTH_USER")
         self.password = os.getenv("AUTH_PASSWORD")
         assert self.username and self.password, "Username and password not set"

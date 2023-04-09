@@ -72,7 +72,7 @@ class Lexer(object):
 
         if data is None:
             raise DslSyntaxError("Expected data, got NoneType")
-        
+
         if data == "":
             raise DslSyntaxError("Expected data, got empty string")
 
