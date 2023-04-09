@@ -7,6 +7,9 @@ import query_dsl
 
 import os
 from dotenv import load_dotenv
+
+import query_dsl
+
 load_dotenv()
 
 if os.getenv("MODE") == "prod":
@@ -32,7 +35,7 @@ def query():
     try:
         query = request.args.get("q")
         return json.dumps(get_elastic_query(query))
-    except query_dsl.parser.SyntaxError as e:
+    except query_dsl.query_dsl.error.DslSyntaxError as e:
         return {
             "error": str(e)
         }
@@ -46,11 +49,11 @@ def seach():
         body = get_elastic_query(query)
         response = es.search(index=index, query=body)
         return json.dumps(response.body)
-    except query_dsl.parser.SyntaxError as e:
+    except query_dsl.query_dsl.error.DslSyntaxError as e:
         return {
             "error": str(e)
         }
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(port=5821, debug=True)
