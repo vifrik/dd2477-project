@@ -1,6 +1,7 @@
 import unittest
 
-from . import lexer
+from .. import lexer
+from .. import error
 
 
 class TestTokenizer(unittest.TestCase):
