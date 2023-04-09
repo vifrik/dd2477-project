@@ -22,6 +22,6 @@ class ParserHelper:
 
 
 if __name__ == "__main__":
-    parser = ParserHelper("../bin/parser.jar", "data/java", "data/java/metadata.json")
+    parser = ParserHelper("../parser/bin/parser.jar", "data/java", "data/java/metadata.json")
     json_obj = parser.parse_folder()
     print(json_obj)

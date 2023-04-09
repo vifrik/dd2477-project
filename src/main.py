@@ -13,7 +13,7 @@ def scrape(args):
 
 
 def parse(args):
-    parser_path = "../bin/parser.jar"
+    parser_path = "../parser/bin/parser.jar"
     path = "data/java"
     metadata_path = os.path.join(path, "metadata.json")
     parser = ParserHelper(parser_path, path, metadata_path)
