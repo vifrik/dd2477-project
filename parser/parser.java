@@ -1,3 +1,4 @@
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.Range;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -186,6 +187,9 @@ public class Main {
                         result.put(partialResult);
                     } catch (FileNotFoundException e) {
                         System.err.printf("file: %s not found%n", file.getAbsolutePath());
+                    } catch (ParseProblemException e) {
+                        System.err.printf("file: %s failed to parse%n", file.getAbsolutePath());
+                        System.err.println(e.getMessage());
                     }
                 }
             }
@@ -200,6 +204,5 @@ public class Main {
         } else {
             System.err.printf("Expected 2 arguments, got %d%n", args.length);
         }
-
     }
 }
