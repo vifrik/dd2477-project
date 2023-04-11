@@ -4,5 +4,4 @@ javalang==0.13.0
 flask==2.2.3
 python-dotenv==1.0.0
 ./query_dsl
-ijson==3.2.0.post0
 requests==2.28.2
