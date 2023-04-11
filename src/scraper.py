@@ -5,10 +5,10 @@ from time import sleep
 import os
 from datetime import datetime
 import json
-import ijson
 from dotenv import load_dotenv
 from credentials import token
 import requests
+from shutil import rmtree
 
 
 EXTENSIONS = {
@@ -34,6 +34,7 @@ class Scraper:
         fetch_endpoint="https://scrape.åt.se/fetch",
         path="data",
         check_for_duplicates=False,
+        batch_size=100,
     ):
         """
         Initializes the scraper.
@@ -44,8 +45,10 @@ class Scraper:
         :param fetch_endpoint: Endpoint to fetch a list of repo URLs
         :param path: Path to save the files to
         :param check_for_duplicates: Try to avoid scraping the same repo twice
+        :param files_per_run: Number of files to scrape before returning control
         """
         assert language in EXTENSIONS, "Language not supported"
+        assert batch_size > 0, "files_per_run must be greater than 0"
 
         load_dotenv()
         self.username = os.getenv("AUTH_USER")
@@ -58,8 +61,7 @@ class Scraper:
         self.extension = EXTENSIONS[language]
         self.peek_endpoint = peek_endpoint
         self.fetch_endpoint = fetch_endpoint
-        self.check_for_duplicates = check_for_duplicates
-        self.scraped_repos = set()
+        self.batch_size = batch_size
         self.scraped_file_count = 0
 
         self.path_setup()
@@ -70,10 +72,6 @@ class Scraper:
         """
         os.makedirs(self.path, exist_ok=True)
         try:
-            if self.check_for_duplicates:
-                with open(self.metadata_path, "r") as f:
-                    for _, file in ijson.kvitems(f, ""):
-                        self.scraped_repos.add(file["repo"])
             self.metadata_file = open(self.metadata_path, "r+")
             # Remove the closing brace and add a comma
             self.metadata_file.seek(0, 2)
@@ -86,11 +84,22 @@ class Scraper:
             self.metadata_file.write(",\n")
 
         except FileNotFoundError:
-            print("NOTE: metadata.json not found, creating new one")
             with open(self.metadata_path, "w") as f:
                 f.write("{\n")
             self.metadata_file = open(self.metadata_path, "r+")
             self.metadata_file.seek(0, 2)
+
+    def close_metadata(self):
+        """
+        Closes the metadata file.
+        """
+        self.metadata_file.seek(0, 2)
+        if os.linesep == "\r\n":
+            self.metadata_file.seek(self.metadata_file.tell() - 3, 0)
+        else:
+            self.metadata_file.seek(self.metadata_file.tell() - 2, 0)
+        self.metadata_file.write("\n}")
+        self.metadata_file.close()
 
     def has_more(self):
         """
@@ -212,13 +221,10 @@ class Scraper:
 
     def run(self):
         """
-        Runs the scraper.
+        Returns a generator that yields the number of scraped files per run.
         """
         try:
             for repo in self.get_repos():
-                if self.check_for_duplicates and repo.full_name in self.scraped_repos:
-                    print(f"Already scraped {repo.full_name}, skipping")
-                    continue
                 encoding_errors = 0
                 print(f"Scraping {repo.full_name}")
                 for file in self.get_files(repo):
@@ -244,24 +250,30 @@ class Scraper:
                             print(
                                 f"Saved {self.scraped_file_count} files. (Rate limit remaining: {self.g.get_rate_limit().core.remaining})"
                             )
-                self.scraped_repos.add(repo.full_name)
+                        if self.scraped_file_count % self.batch_size == 0:
+                            self.close_metadata()
+                            yield self.batch_size
+                            # Clean up before starting a new run
+                            rmtree(self.path)
+                            self.path_setup()
+
+            # Deal with leftover files from the last run
+            self.close_metadata()
+            yield self.scraped_file_count % self.batch_size
+            rmtree(self.path)
+
         except Exception as e:
             print(f"Uncaught exception while scraping: {e}")
-        finally:
-            if self.metadata_file.tell() < 4:
-                print("Deleting empty metadata file")
-                self.metadata_file.close()
-                os.remove(self.metadata_path)
-                return
-            # Fix metadata file before closing
-            if os.linesep == "\r\n":
-                self.metadata_file.seek(self.metadata_file.tell() - 3, 0)
-            else:
-                self.metadata_file.seek(self.metadata_file.tell() - 2, 0)
-            self.metadata_file.write("\n}")
-            self.metadata_file.close()
+            if not self.metadata_file.closed:
+                if self.metadata_file.tell() < 4:
+                    print("Deleting empty metadata file")
+                    self.metadata_file.close()
+                    os.remove(self.metadata_path)
+                else:
+                    self.close_metadata()
 
 
 if __name__ == "__main__":
-    scraper = Scraper()
-    scraper.run()
+    scraper = Scraper(batch_size=5)
+    for count in scraper.run():
+        print(f"Scraped {count} files")
