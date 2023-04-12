@@ -12,7 +12,7 @@ LOOKUP = {
     "methodName": "methods.name",
     "methodModifier": "methods.modifiers",
     "returnType": "methods.return_type",
-    "functionAnnotation": "methods.annotations",
+    "methodAnnotation": "methods.annotations",
     "parameterName": "methods.parameters.name",
     "parameterType": "methods.parameters.type",
     # class
