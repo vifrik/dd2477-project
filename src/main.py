@@ -66,4 +66,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except FileNotFoundError as e:
+        print("Make sure that Java exists, run java --version to check")
+        print("https://www.oracle.com/java/technologies/downloads/#jdk20-windows")
