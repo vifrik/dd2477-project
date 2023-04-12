@@ -3,12 +3,13 @@ from github.PaginatedList import PaginatedList
 from github.GithubException import RateLimitExceededException
 from time import sleep
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from dotenv import load_dotenv
 from credentials import token
 import requests
 from shutil import rmtree
+import traceback
 
 
 EXTENSIONS = {
@@ -33,7 +34,6 @@ class Scraper:
         peek_endpoint="https://scrape.åt.se/peek",
         fetch_endpoint="https://scrape.åt.se/fetch",
         path="data",
-        check_for_duplicates=False,
         batch_size=100,
     ):
         """
@@ -126,8 +126,9 @@ class Scraper:
         Waits until the core rate limit resets.
         """
         reset = self.g.get_rate_limit().core.reset
-        print(f"Rate limit exceeded, sleeping until {reset}")
-        sleep((reset - datetime.now()).total_seconds() + 1)
+        delta = (reset - datetime.utcnow()).total_seconds() + 1
+        print(f"Rate limit exceeded, sleeping for {delta // 60} minutes")
+        sleep(delta)
 
     def get_repos(self):
         """
@@ -262,8 +263,9 @@ class Scraper:
             yield self.scraped_file_count % self.batch_size
             rmtree(self.path)
 
-        except Exception as e:
-            print(f"Uncaught exception while scraping: {e}")
+        except:
+            print(f"Uncaught exception while scraping:")
+            traceback.print_exc()
             if not self.metadata_file.closed:
                 if self.metadata_file.tell() < 4:
                     print("Deleting empty metadata file")
