@@ -112,9 +112,28 @@ class Parser(object):
             if isinstance(token, Query):
                 if token.query_type not in LOOKUP:
                     raise LookupException(f"{token.query_type} not in lookup table")
+
+                query_path = LOOKUP[token.query_type]
                 operand_stack.append({
-                    "match": {
-                        LOOKUP[token.query_type]: token.query_value
+                    "nested": {
+                        "path": query_path.split(".")[0],
+                        "query": {
+                            "match": {
+                                query_path: token.query_value
+                            }
+                        },
+                        "inner_hits": {
+                            # TODO bug here
+                            # if (methodName:xx AND returnType:T1) OR (methodName:xx AND returnType:T2)
+                            # query can be simplified as methodName:xx AND (returnType:T1 OR returnType:T2)
+                            # which would not cause an error but user may not
+                            "name": "=".join([query_path, token.query_value]),
+                            "highlight": {
+                                "fields": {
+                                    query_path: {}
+                                }
+                            }
+                        }
                     }
                 })
             elif isinstance(token, lexer.Operator):
