@@ -1,4 +1,4 @@
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, BadRequestError
 import json
 
 from parserhelper import ParserHelper
@@ -17,16 +17,19 @@ class Elastic:
         resp = self.es.indices.delete(index=self.index, ignore=[400, 404])
 
     def upload_bulk(self, json_object):
-        bulk_data = []
+        try:
+            bulk_data = []
 
-        for doc in json_object:
-            json_str = json.dumps(doc, indent=2, default=ParserHelper.Utils.serialize_sets)
-            bulk_data.append({
-                "index": {
-                    "_index": self.index,
-                }
-            })
-            bulk_data.append(doc)
+            for doc in json_object:
+                json_str = json.dumps(doc, indent=2, default=ParserHelper.Utils.serialize_sets)
+                bulk_data.append({
+                    "index": {
+                        "_index": self.index,
+                    }
+                })
+                bulk_data.append(doc)
 
-        resp = self.es.bulk(index="my_index", operations=bulk_data, refresh=True)
-        print(resp)
+            resp = self.es.bulk(index="my_index", operations=bulk_data, refresh=True)
+            print(resp)
+        except BadRequestError as e:
+            print(f"Failed to upload. {e.body}")
