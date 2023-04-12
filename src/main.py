@@ -36,9 +36,9 @@ def scrapeparse(args):
 def upload(args, json_object):
     elastic = Elastic(args.upload)
 
-    if args.delete:
-        args.delete = False
-        elastic.delete()
+    #if args.delete:
+    #    args.delete = False
+    #    elastic.delete()
 
     elastic.upload_bulk(json_object)
 
@@ -50,7 +50,7 @@ def parse_args():
     mode_group.add_argument("-P", "--parse", help="should parse", action="store_true")
     mode_group.add_argument("-SP", "--scrapeparse", help="should scrape and parse", action="store_true")
     parser.add_argument("-u", "--upload", metavar="index", help="should upload")
-    parser.add_argument("--delete", help="(WARNING, deletes entire index) should delete", action="store_true")
+    #parser.add_argument("--delete", help="(WARNING, deletes entire index) should delete", action="store_true")
     return parser.parse_args()
 
 
