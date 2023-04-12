@@ -27,6 +27,12 @@ def parse(args):
         print(json_array)
 
 
+def scrapeparse(args):
+    scraper = Scraper(batch_size=5)
+    for count in scraper.run():
+        parse(args)
+
+
 def upload(args, json_object):
     elastic = Elastic(args.upload)
 
@@ -42,6 +48,7 @@ def parse_args():
     mode_group = parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument("-S", "--scrape", help="should scraper", action="store_true")
     mode_group.add_argument("-P", "--parse", help="should parse", action="store_true")
+    mode_group.add_argument("-SP", "--scrapeparse", help="should scrape and parse", action="store_true")
     parser.add_argument("-u", "--upload", metavar="index", help="should upload")
     parser.add_argument("--delete", help="(WARNING, deletes entire index) should delete", action="store_true")
     return parser.parse_args()
@@ -54,6 +61,8 @@ def main():
         scrape(args)
     elif args.parse:
         parse(args)
+    elif args.scrapeparse:
+        scrapeparse(args)
 
 
 if __name__ == "__main__":
