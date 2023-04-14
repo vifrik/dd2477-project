@@ -35,7 +35,7 @@ def query():
     try:
         query = request.args.get("q")
         return json.dumps(get_elastic_query(query))
-    except query_dsl.query_dsl.error.DslSyntaxError as e:
+    except query_dsl.error.DslSyntaxError as e:
         return {
             "error": str(e)
         }
@@ -49,7 +49,7 @@ def seach():
         body = get_elastic_query(query)
         response = es.search(index=index, query=body)
         return json.dumps(response.body)
-    except query_dsl.query_dsl.error.DslSyntaxError as e:
+    except query_dsl.error.DslSyntaxError as e:
         return {
             "error": str(e)
         }
