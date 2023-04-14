@@ -2,3 +2,5 @@ __pycache__
 src/data
 .idea
 .env
+query_dsl/build
+query_dsl/Query_DSL.egg-info
