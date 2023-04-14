@@ -1,10 +1,6 @@
 from flask import Flask, request
 from elasticsearch import Elasticsearch
 import json
-
-import query_dsl
-
-
 import os
 from dotenv import load_dotenv
 
