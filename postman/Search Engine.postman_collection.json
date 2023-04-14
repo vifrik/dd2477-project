@@ -1,0 +1,893 @@
+{
+	"info": {
+		"_postman_id": "0ad91753-153c-4fbb-9f09-7402228489ab",
+		"name": "Search Engine",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18332058"
+	},
+	"item": [
+		{
+			"name": "Error checking",
+			"item": [
+				{
+					"name": "No binder",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/query?q=filename",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "filename"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "No binder infix",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/query?q=filename Constants.java",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "filename Constants.java"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "No identifier",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/query?q=filename:",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "filename:"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "No index",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/search?q=filename:Constants.java",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "filename:Constants.java"
+								},
+								{
+									"key": "index",
+									"value": "sample-index",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Missing operand",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/search?q=filename:Constants.java AND",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "filename:Constants.java AND"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Query API",
+			"item": [
+				{
+					"name": "Filename",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host_local}}/search?q=filename:Constants.java",
+							"host": [
+								"{{host_local}}"
+							],
+							"path": [
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "filename:Constants.java"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filename and fieldType",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host_local}}/search?q=filename:Constants.java AND fieldType:String",
+							"host": [
+								"{{host_local}}"
+							],
+							"path": [
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "filename:Constants.java AND fieldType:String"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Query",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host_local}}/query?q=filename:Constants.java AND (methodName:nagot OR methodName:nagotannat)",
+							"host": [
+								"{{host_local}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "filename:Constants.java AND (methodName:nagot OR methodName:nagotannat)"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Scrape API",
+			"item": [
+				{
+					"name": "Scrape",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://scrape.åt.se/peek",
+							"protocol": "https",
+							"host": [
+								"scrape",
+								"åt",
+								"se"
+							],
+							"path": [
+								"peek"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Scrape fetch",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://scrape.åt.se/fetch",
+							"protocol": "https",
+							"host": [
+								"scrape",
+								"åt",
+								"se"
+							],
+							"path": [
+								"fetch"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Scrape fetch output",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://scrape.åt.se/fetch",
+									"protocol": "https",
+									"host": [
+										"scrape",
+										"åt",
+										"se"
+									],
+									"path": [
+										"fetch"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 06 Apr 2023 16:11:56 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Content-Length",
+									"value": "225"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "X-Served-By",
+									"value": "scrape.xn--t-1fa.se"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    \"https://github.com/Gu-ZT/Curtain\",\n    \"https://github.com/0x727/BypassPro\",\n    \"https://github.com/d3mondev/burp-vps-proxy\",\n    \"https://github.com/zhongjinggz/geekdemo\",\n    \"https://github.com/Ginyi3705/ginyi-spring-vue\"\n]"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Sample-index-2",
+			"item": [
+				{
+					"name": "Put nested",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mappings\": {\n    \"properties\": {\n      \"classes\": {\n        \"type\": \"nested\",\n        \"properties\": {\n          \"annotations\": {\n            \"type\": \"nested\",\n            \"properties\": {\n              \"name\": {\"type\": \"text\"},\n              \"position\": {\"type\": \"long\"}\n            }\n          },\n          \"modifiers\": {\n            \"type\": \"nested\",\n            \"properties\": {\n              \"name\": {\"type\": \"text\"},\n              \"position\": {\"type\": \"long\"}\n            }\n          },\n          \"name\": {\"type\": \"text\"},\n          \"name_position\": {\"type\": \"long\"},\n          \"position\": {\"type\": \"long\"}\n        }\n      },\n      \"fields\": {\n        \"type\": \"nested\",\n        \"properties\": {\n          \"modifiers\": {\n            \"type\": \"nested\",\n            \"properties\": {\n              \"name\": {\"type\": \"text\"},\n              \"position\": {\"type\": \"long\"}\n            }\n          },\n          \"name\": {\"type\": \"text\"},\n          \"name_position\": {\"type\": \"long\"},\n          \"position\": {\"type\": \"long\"}\n        }\n      },\n      \"metadata\": {\n        \"properties\": {\n          \"commit_sha\": {\"type\": \"text\"},\n          \"download_url\": {\"type\": \"text\"},\n          \"given_name\": {\"type\": \"text\"},\n          \"name\": {\"type\": \"text\"},\n          \"path\": {\"type\": \"text\"},\n          \"repo\": {\"type\": \"text\"},\n          \"timestamp\": {\"type\": \"date\"}\n        }\n      },\n      \"methods\": {\n        \"type\": \"nested\",\n        \"properties\": {\n          \"annotations\": {\n            \"type\": \"nested\",\n            \"properties\": {\n              \"name\": {\"type\": \"text\"},\n              \"position\": {\"type\": \"long\"}\n            }\n          },\n          \"modifiers\": {\n            \"type\": \"nested\",\n            \"properties\": {\n              \"name\": {\"type\": \"text\"},\n              \"position\": {\"type\": \"long\"}\n            }\n          },\n          \"name\": {\"type\": \"text\"},\n          \"name_position\": {\"type\": \"long\"},\n          \"parameters\": {\n            \"type\": \"nested\",\n            \"properties\": {\n              \"name\": {\"type\": \"text\"},\n              \"position\": {\"type\": \"long\"}\n            }\n          },\n          \"position\": {\"type\": \"long\"},\n          \"return_type\": {\"type\": \"text\"},\n          \"return_type_position\": {\"type\": \"long\"}\n        }\n      },\n      \"variables\": {\n        \"type\": \"nested\",\n        \"properties\": {\n          \"name\": {\"type\": \"text\"},\n          \"name_position\": {\"type\": \"long\"},\n          \"position\": {\"type\": \"long\"}\n        }\n      }\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/sample-index-2",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"sample-index-2"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/sample-index-2",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"sample-index-2"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mapping",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/_mapping",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"_mapping"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "General - sample-index-2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://elastic.åt.se:443/sample-index-2/_search",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"sample-index-2",
+								"_search"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "nested search - sample-index-2 Copy",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": {\n        \"bool\": {\n            \"must\": [\n                {\n                    \"nested\": {\n                        \"path\": \"methods\",\n                        \"query\": {\n                            \"match\": {\n                                \"methods.return_type\": \"T\"\n                            }\n                        },\n                        \"inner_hits\": {}\n                    }\n                },\n                {\n                    \"nested\": {\n                        \"path\": \"methods\",\n                        \"query\": {\n                            \"match\": {\n                                \"methods.name\": \"parse\"\n                            }\n                        },\n                        \"inner_hits\": {}\n                    }\n                }\n            ]\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/sample-index-2/_search",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"sample-index-2",
+								"_search"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "complex - sample-index-2",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"query\": {\n        \"bool\": {\n            \"should\": [\n                {\n                    \"nested\": {\n                        \"path\": \"fields\",\n                        \"query\": {\n                            \"match\": {\n                                \"fields.name\": \"s\"\n                            }\n                        },\n                        \"inner_hits\": {\n                            \"name\": \"fields.name=s\",\n                            \"highlight\": {\n                                \"fields\": {\n                                    \"fields.name\": {}\n                                }\n                            }\n                        }\n                    }\n                },\n                {\n                    \"bool\": {\n                        \"must\": [\n                            {\n                                \"nested\": {\n                                    \"path\": \"variables\",\n                                    \"query\": {\n                                        \"match\": {\n                                            \"variables.name\": \"mapper\"\n                                        }\n                                    },\n                                    \"inner_hits\": {\n                                        \"name\": \"variables.name=mapper\",\n                                        \"highlight\": {\n                                            \"fields\": {\n                                                \"variables.name\": {}\n                                            }\n                                        }\n                                    }\n                                }\n                            },\n                            {\n                                \"nested\": {\n                                    \"path\": \"methods\",\n                                    \"query\": {\n                                        \"match\": {\n                                            \"methods.name\": \"parse\"\n                                        }\n                                    },\n                                    \"inner_hits\": {\n                                        \"name\": \"methods.name=parse\",\n                                        \"highlight\": {\n                                            \"fields\": {\n                                                \"methods.name\": {}\n                                            }\n                                        }\n                                    }\n                                }\n                            }\n                        ]\n                    }\n                }\n            ]\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/sample-index-2/_search",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"sample-index-2",
+								"_search"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "main-index",
+			"item": [
+				{
+					"name": "General",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/main-index/_search",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"main-index",
+								"_search"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "clone",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/main-index/_clone/main-index-clone",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"main-index",
+								"_clone",
+								"main-index-clone"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "disallow write",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"settings\": {\n        \"index.blocks.write\": false\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/main-index/_settings",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"main-index",
+								"_settings"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Nested search",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": {\n    \"nested\": {\n      \"path\": \"methods\",\n      \"query\": {\n        \"match\": {\n          \"methods.name\": \"parse\"\n        }\n      },\n      \"inner_hits\": {}\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/main-index/_search",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"main-index",
+								"_search"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Nested search Copy",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/main-index/_mapping",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"main-index",
+								"_mapping"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "main-index Copy",
+			"item": [
+				{
+					"name": "General",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"query\": {\n    \"match\": {\n      \"methods.name\": \"parse\"\n    }\n  },\n  \"inner_hits\": {\n    \"name\": \"matched_methods\",\n    \"path\": \"methods\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/main-index-clone/_search",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"main-index-clone",
+								"_search"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reindex",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"source\": {\n        \"index\": \"main-index-clone\"\n    },\n    \"dest\": {\n        \"index\": \"sample-index-2\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://elastic.åt.se:443/_reindex",
+							"protocol": "https",
+							"host": [
+								"elastic",
+								"åt",
+								"se"
+							],
+							"port": "443",
+							"path": [
+								"_reindex"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Version",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://elastic.åt.se:443",
+					"protocol": "https",
+					"host": [
+						"elastic",
+						"åt",
+						"se"
+					],
+					"port": "443"
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "68357205",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "elastic",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "clone",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "host_local",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
