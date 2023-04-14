@@ -2,6 +2,14 @@ class LookupException(Exception):
     pass
 
 
+EXCLUDE = [
+    "filename",
+    "repo",
+    "import",
+    "package"
+]
+
+
 LOOKUP = {
     # metadata
     "filename": "metadata.name",

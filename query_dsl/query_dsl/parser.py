@@ -2,7 +2,7 @@ import json
 
 from . import lexer
 from .error import DslSyntaxError
-from .keyword_mapping import LOOKUP, LookupException
+from .keyword_mapping import LOOKUP, LookupException, EXCLUDE
 
 
 class EmptyListException(Exception):
@@ -114,28 +114,32 @@ class Parser(object):
                     raise LookupException(f"{token.query_type} not in lookup table")
 
                 query_path = LOOKUP[token.query_type]
-                operand_stack.append({
-                    "nested": {
-                        "path": query_path.split(".")[0],
-                        "query": {
-                            "match": {
-                                query_path: token.query_value
-                            }
-                        },
-                        "inner_hits": {
-                            # TODO bug here
-                            # if (methodName:xx AND returnType:T1) OR (methodName:xx AND returnType:T2)
-                            # query can be simplified as methodName:xx AND (returnType:T1 OR returnType:T2)
-                            # which would not cause an error but user may not
-                            "name": "=".join([query_path, token.query_value]),
-                            "highlight": {
-                                "fields": {
-                                    query_path: {}
+
+                query = {
+                    "match": {
+                        query_path: token.query_value
+                    }
+                }
+                if token.query_type not in EXCLUDE:
+                    query = {
+                        "nested": {
+                            "path": query_path.split(".")[0],
+                            "query": query,
+                            "inner_hits": {
+                                # TODO bug here
+                                # if (methodName:xx AND returnType:T1) OR (methodName:xx AND returnType:T2)
+                                # query can be simplified as methodName:xx AND (returnType:T1 OR returnType:T2)
+                                # which would not cause an error but user may not
+                                "name": "=".join([query_path, token.query_value]),
+                                "highlight": {
+                                    "fields": {
+                                        query_path: {}
+                                    }
                                 }
                             }
                         }
                     }
-                })
+                operand_stack.append(query)
             elif isinstance(token, lexer.Operator):
                 if len(operand_stack) < 2:
                     raise DslSyntaxError(f"Not enough operands provided for {token.value}")
