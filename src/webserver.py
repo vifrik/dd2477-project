@@ -38,13 +38,34 @@ def query():
 
 
 @app.route("/search")
-def seach():
+def search():
     try:
         query = request.args.get("q")
         index = request.args.get("index")
         body = get_elastic_query(query)
         response = es.search(index=index, query=body)
-        return json.dumps(response.body)
+
+        res = []
+        for hit in response["hits"]["hits"]:
+            new = {}
+            new["id"] = hit["_id"]
+            new["score"] = hit["_score"]
+            new["url"] = hit["_source"]["metadata"]["download_url"]
+
+            highlights = {}
+            type_raw = ""
+            for key in hit["inner_hits"].keys():
+                type_raw = key
+            type = type_raw.split("=")[0].split(".")[1]
+            highlights["result"] = hit["inner_hits"][type_raw]["hits"]["hits"][0]["_source"][type + "_position"]
+
+            new["highlights"] = highlights
+
+            res.append(new)
+
+
+
+        return json.dumps(res)
     except query_dsl.error.DslSyntaxError as e:
         return {
             "error": str(e)
