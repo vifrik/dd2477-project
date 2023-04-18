@@ -4,3 +4,4 @@ src/data
 .env
 query_dsl/build
 query_dsl/Query_DSL.egg-info
+.vs
