@@ -41,7 +41,7 @@ def query():
 def search():
     try:
         query = request.args.get("q")
-        index = request.args.get("index")
+        index = request.args.get("index", default="main-index")
         body = get_elastic_query(query)
         response = es.search(index=index, query=body)
 
