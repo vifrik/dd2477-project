@@ -55,6 +55,10 @@ def search():
             new["id"] = hit["_id"]
             new["score"] = hit["_score"]
             new["metadata"] = hit["_source"]["metadata"]
+            download_url = new["metadata"]["download_url"]
+            direct_url_parts = download_url.replace("raw.githubusercontent.com", "github.com").split("/")
+            direct_url_parts.insert(5, "blob")
+            new["metadata"]["direct_url"] = "/".join(direct_url_parts)
 
             highlights = []
             for key in hit["inner_hits"].keys():
