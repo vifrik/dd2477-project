@@ -42,8 +42,12 @@ def search():
     try:
         query = request.args.get("q")
         index = request.args.get("index", default="main-index")
+        from_index = request.args.get("from", default="0")
+        size = request.args.get("size", default="10")
+
         body = get_elastic_query(query)
-        response = es.search(index=index, query=body)
+        
+        response = es.search(index=index, query=body, size=size, from_=from_index)
 
         res = []
         for hit in response["hits"]["hits"]:
