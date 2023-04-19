@@ -51,6 +51,8 @@ def search():
             new["id"] = hit["_id"]
             new["score"] = hit["_score"]
             new["url"] = hit["_source"]["metadata"]["download_url"]
+            new["path"] = hit["_source"]["metadata"]["path"]
+            new["repo"] = hit["_source"]["metadata"]["repo"]
 
             highlights = {}
             type_raw = ""
