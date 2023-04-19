@@ -19,21 +19,20 @@ app = Flask(__name__)
 g = Github(os.getenv("GH_TOKEN"))
 
 def get_stars():
-    yield (3001, 200_000) # Most starred has ~130k stars: https://github.com/Snailclimb/JavaGuide
+    yield 3001, 200_000 # Most starred has ~130k stars: https://github.com/Snailclimb/JavaGuide
     min_stars = max_stars = 3000
     while min_stars > 100: # Only process repos with more than 100 stars (approximation may be inaccurate for lower values)
         repo_count = approximate_repos_with_stars(min_stars)
         while repo_count < 1000 and min_stars > 100:
             min_stars -= 1
             repo_count += approximate_repos_with_stars(min_stars)
-        yield (min_stars, max_stars)
+        yield min_stars, max_stars
         max_stars = min_stars - 1
 
 def get_repos():
-    min_stars, max_stars = next(get_stars())
     rate_limit = g.get_rate_limit()
     while rate_limit.search.remaining > 0:
-        for (min_stars, max_stars) in get_stars():
+        for min_stars, max_stars in get_stars():
             try:
                 yield g.search_repositories(
                     f"language:Java stars:{min_stars}..{max_stars}",
