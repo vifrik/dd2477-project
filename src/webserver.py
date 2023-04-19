@@ -58,12 +58,13 @@ def search():
             new["path"] = hit["_source"]["metadata"]["path"]
             new["repo"] = hit["_source"]["metadata"]["repo"]
 
-            highlights = {}
-            type_raw = ""
+            highlights = []
             for key in hit["inner_hits"].keys():
-                type_raw = key
-            type = type_raw.split("=")[0].split(".")[1]
-            highlights["result"] = hit["inner_hits"][type_raw]["hits"]["hits"][0]["_source"][type + "_position"]
+                type = key.split("=")[0].split(".")[1]
+                for inner_hit in hit["inner_hits"][key]["hits"]["hits"]:
+                    highlights.append({
+                        "result": inner_hit["_source"][type + "_position"]
+                    })
 
             new["highlights"] = highlights
 
