@@ -54,9 +54,7 @@ def search():
             new = {}
             new["id"] = hit["_id"]
             new["score"] = hit["_score"]
-            new["url"] = hit["_source"]["metadata"]["download_url"]
-            new["path"] = hit["_source"]["metadata"]["path"]
-            new["repo"] = hit["_source"]["metadata"]["repo"]
+            new["metadata"] = hit["_source"]["metadata"]
 
             highlights = []
             for key in hit["inner_hits"].keys():
@@ -69,8 +67,6 @@ def search():
             new["highlights"] = highlights
 
             res.append(new)
-
-
 
         return json.dumps(res)
     except query_dsl.error.DslSyntaxError as e:
