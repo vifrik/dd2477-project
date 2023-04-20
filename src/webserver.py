@@ -63,11 +63,13 @@ def search():
             highlights = []
             if "inner_hits" in hit:
                 for key in hit["inner_hits"].keys():
-                    type = key.split("=")[0].split(".")[1]
                     for inner_hit in hit["inner_hits"][key]["hits"]["hits"]:
-                        highlights.append({
-                            "result": inner_hit["_source"][type + "_position"]
-                        })
+                        print()
+                        for highlight in inner_hit["highlight"]:
+                            type = highlight.split(".")[1]
+                            highlights.append({
+                                "result": inner_hit["_source"][type + "_position"]
+                            })
 
             new["highlights"] = highlights
 
