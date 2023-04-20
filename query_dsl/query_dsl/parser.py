@@ -4,7 +4,7 @@ import random
 import string
 
 from . import lexer
-from .error import DslSyntaxError, TOKENS_IS_EMPTY, INCORRECT_GRAMMAR, WRONG_KEYWORD_TYPE, WRONG_ATTRIBUTE_PROVIDED, \
+from .error import DslSyntaxError, INCORRECT_GRAMMAR, WRONG_KEYWORD_TYPE, WRONG_ATTRIBUTE_PROVIDED, \
     MISSING_LEFT_PARENTHESIS, MISSING_KEYWORD, MISSING_RIGHT_PARENTHESIS, \
     MISSING_OPERAND, UNRECOGNIZED_OPERATOR, MISSING_LEFT_SQUARE_BRACKET, MISSING_ATTRIBUTE, MISSING_BINDER, \
     MISSING_IDENTIFIER, MISSING_RIGHT_SQUARE_BRACKET
@@ -105,11 +105,7 @@ class MetadataQuery(Query):
     TOKEN_CLASS = lexer.MetadataKeyword
 
     def get_query(self):
-        return {
-            "match": {
-                self.TOKEN_CLASS.PATH: self._query_helper_bool()
-            }
-        }
+        return self._query_helper_bool()
 
 
 class MethodQuery(Query):
