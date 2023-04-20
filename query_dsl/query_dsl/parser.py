@@ -202,8 +202,8 @@ class Parser(object):
                 self.check_grammar(lexer.Separator, token, expected="]", error_id=MISSING_RIGHT_SQUARE_BRACKET)
                 output_queue.append(query)
 
-                if not self.tokens.is_empty() and not isinstance(self.tokens.peek(), lexer.Operator):
-                    operator_stack.append(lexer.Operator("AND"))
+                # if not self.tokens.is_empty() and not isinstance(self.tokens.peek(), lexer.Operator):
+                #     operator_stack.append(lexer.Operator("AND"))
             elif isinstance(token, lexer.Operator):
                 while operator_stack and isinstance(operator_stack[-1], lexer.Operator) and precedence[operator_stack[-1].value] >= precedence[token.value]:
                     output_queue.append(operator_stack.pop())
@@ -246,6 +246,8 @@ class Parser(object):
 
     def evaluate_postfix(self, tokens):
         operand_stack = []
+
+        print(tokens)
 
         for token in tokens:
             if isinstance(token, Query):
