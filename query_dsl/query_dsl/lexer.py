@@ -32,10 +32,29 @@ class Binder(Token):
 
 
 class Operator(Token):
-    MAX_LEN = 3
+    class Type:
+        AND = 0
+        SAND = 1
+        OR = 2
+        SOR = 3
+
+    def get(self):
+        if self.value in ["AND", "&&"]:
+            return Operator.Type.AND
+        elif self.value in ["SAND", "&&&"]:
+            return Operator.Type.SAND
+        elif self.value in ["OR", "||"]:
+            return Operator.Type.OR
+        elif self.value in ["SOR", "|||"]:
+            return Operator.Type.SAND
+
+    MAX_LEN = 4
+
     VALUES = {
-        "AND",
-        "OR"
+        "AND", "&&",
+        "SAND", "&&&"
+        "OR", "||",
+        "SOR", "|||"
     }
 
 
