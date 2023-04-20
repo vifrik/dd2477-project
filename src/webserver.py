@@ -61,12 +61,13 @@ def search():
             new["metadata"]["direct_url"] = "/".join(direct_url_parts)
 
             highlights = []
-            for key in hit["inner_hits"].keys():
-                type = key.split("=")[0].split(".")[1]
-                for inner_hit in hit["inner_hits"][key]["hits"]["hits"]:
-                    highlights.append({
-                        "result": inner_hit["_source"][type + "_position"]
-                    })
+            if "inner_hits" in hit:
+                for key in hit["inner_hits"].keys():
+                    type = key.split("=")[0].split(".")[1]
+                    for inner_hit in hit["inner_hits"][key]["hits"]["hits"]:
+                        highlights.append({
+                            "result": inner_hit["_source"][type + "_position"]
+                        })
 
             new["highlights"] = highlights
 
