@@ -1,4 +1,3 @@
-from .keyword_mapping import LOOKUP
 from .error import DslSyntaxError
 
 
@@ -21,14 +20,73 @@ class Token(object):
 
 
 class Keyword(Token):
-    VALUES = LOOKUP.keys()
+    LEADER = None
+    PATH = None
+    FIELDS = None
+
+
+class MetadataKeyword(Keyword):
+    LEADER = "metadata"
+    FIELDS = {
+        "name": "metadata.name",
+        "repo": "metadata.repo",
+        "import": "metadata.imports",
+        "package": "metadata.package"
+    }
+
+
+class MethodKeyword(Keyword):
+    LEADER = "method"
+    PATH = "methods"
+    FIELDS = {
+        "name": "methods.name",
+        "modifier": "methods.modifiers",
+        "returnType": "methods.return_type",
+        "annotation": "methods.annotations",
+        "parameterName": "methods.parameters.name",
+        "parameterType": "methods.parameters.type",
+    }
+
+
+class ClassKeyword(Keyword):
+    LEADER = "class"
+    PATH = "classes"
+    FIELDS = {
+        "name": "classes.name",
+        "modifier": "classes.modifiers",
+        "annotation": "classes.annotations",
+        "extend": "classes.extends",
+    }
+
+
+class VariableKeyword(Keyword):
+    LEADER = "variable"
+    PATH = "variables"
+    FIELDS = {
+        "name": "variables.name",
+        "type": "variables.type",
+    }
+
+
+class FieldKeyword(Keyword):
+    LEADER = "field"
+    PATH = "fields"
+    FIELDS = {
+        "name": "fields.name",
+        "type": "fields.type",
+    }
+
+class Attribute(Token):
+    pass
 
 
 class Binder(Token):
     VALUES = {
-        ':'
+        ":",
+        ",",
+        "|"
     }
-    DESCRIPTION = "Used to combine Keyword and Identifier"
+    DESCRIPTION = "placeholder"
 
 
 class Operator(Token):
@@ -41,12 +99,22 @@ class Operator(Token):
 
 class Separator(Token):
     VALUES = {
-        "(", ")"
+        "(", ")",
+        "[", "]"
     }
 
 
 class Identifier(Token):
     pass
+
+
+attributes = {attr for attr in [
+    *MetadataKeyword.FIELDS.keys(),
+    *MethodKeyword.FIELDS.keys(),
+    *ClassKeyword.FIELDS.keys(),
+    *VariableKeyword.FIELDS.keys(),
+    *FieldKeyword.FIELDS.keys()
+]}
 
 
 def generate_documentation():
@@ -93,8 +161,18 @@ class Lexer(object):
                 break
 
         ident = self.data[self.cur_pos:self.end_pos]
-        if ident in Keyword.VALUES:
-            token_type = Keyword
+        if ident in attributes:
+            token_type = Attribute
+        elif ident in MetadataKeyword.LEADER:
+            token_type = MetadataKeyword
+        elif ident in MethodKeyword.LEADER:
+            token_type = MethodKeyword
+        elif ident in ClassKeyword.LEADER:
+            token_type = ClassKeyword
+        elif ident in VariableKeyword.LEADER:
+            token_type = VariableKeyword
+        elif ident in FieldKeyword.LEADER:
+            token_type = FieldKeyword
         else:
             token_type = Identifier
 

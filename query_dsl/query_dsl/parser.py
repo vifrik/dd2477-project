@@ -1,8 +1,10 @@
+from abc import ABC, abstractmethod, abstractproperty
 import json
+import random
+import string
 
 from . import lexer
 from .error import DslSyntaxError
-from .keyword_mapping import LOOKUP, LookupException, EXCLUDE
 
 
 class EmptyListException(Exception):
@@ -31,24 +33,109 @@ class ListHelper(object):
         return self.tokens[self.current - 1]
 
 
-class Query(object):
-    def __init__(self, query_type, query_value):
-        self.query_type = query_type
-        self.query_value = query_value
+class Query(ABC):
+    TOKEN_CLASS = None
 
-    def __repr__(self):
-        return "<%s '%s'>" % (self.query_type, self.query_value)
+    def get_fields(self):
+        return [attr for attr in dir(self) if not attr.startswith("_") and not callable(getattr(self, attr))]
+
+    def get_fields_dict(self):
+        return {
+            field: getattr(self, field) for field in self.get_fields()
+        }
+
+    def get_fields_size(self):
+        return len(self.get_fields())
+
+    def _query_helper_match(self, field, value):
+        if len(value) == 1:
+            return {
+                "match": {
+                    self.TOKEN_CLASS.FIELDS[field]: value[0]
+                }
+            }
+
+        return {
+            "bool": {
+                "should": [
+                    {
+                        "match": {
+                            self.TOKEN_CLASS.FIELDS[field]: val
+                        }
+                    } for val in value
+                ]
+            }
+        }
+
+    def _query_helper_bool(self):
+        inner_match = [self._query_helper_match(k, v) for k, v in self.get_fields_dict().items()]
+        if len(inner_match) == 1:
+            return inner_match[0]
+
+        return {
+            "bool": {
+                "must": inner_match
+            }
+        }
+
+    def _get_random_string(self, length):
+        return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+
+    def get_query(self):
+        return {
+            "nested": {
+                "path": self.TOKEN_CLASS.PATH,
+                "query": self._query_helper_bool(),
+                "inner_hits": {
+                    "name": f"{self.TOKEN_CLASS.LEADER}-{self._get_random_string(10)}",
+                    "highlight": {
+                        "fields": {
+                            self.TOKEN_CLASS.FIELDS[field]: {} for field in self.get_fields()
+                        }
+                    }
+                }
+            }
+        }
+
+
+class MetadataQuery(Query):
+    TOKEN_CLASS = lexer.MetadataKeyword
+
+    def get_query(self):
+        return {
+            "match": {
+                self.TOKEN_CLASS.PATH: self._query_helper_bool()
+            }
+        }
+
+
+class MethodQuery(Query):
+    TOKEN_CLASS = lexer.MethodKeyword
+
+
+class ClassQuery(Query):
+    TOKEN_CLASS = lexer.ClassKeyword
+
+
+class VariableQuery(Query):
+    TOKEN_CLASS = lexer.VariableKeyword
+
+
+class FieldQuery(Query):
+    TOKEN_CLASS = lexer.FieldKeyword
 
 
 class Parser(object):
     def __init__(self, tokens):
         self.tokens = ListHelper(tokens)
 
-    def check_grammar(self, class_expected, token):
+    def check_grammar(self, class_expected, token, expected=None):
         class_name = class_expected.__name__
         if self.tokens.is_empty():
             raise DslSyntaxError(f"Expected {class_name} after {token.value}, got nothing")
         if not isinstance(new_token := self.tokens.pop(), class_expected):
+            raise DslSyntaxError(f"Expected {class_name} after {token.value}, got {new_token.value} instead")
+        if expected is not None and new_token.value != expected:
             raise DslSyntaxError(f"Expected {class_name} after {token.value}, got {new_token.value} instead")
         return new_token
 
@@ -62,9 +149,50 @@ class Parser(object):
             token = self.tokens.pop()
 
             if isinstance(token, lexer.Keyword):
-                binder = self.check_grammar(lexer.Binder, token)
-                identifier = self.check_grammar(lexer.Identifier, binder)
-                output_queue.append(Query(token.value, identifier.value))
+                if isinstance(token, lexer.MetadataKeyword):
+                    query = MetadataQuery()
+                elif isinstance(token, lexer.MethodKeyword):
+                    query = MethodQuery()
+                elif isinstance(token, lexer.ClassKeyword):
+                    query = ClassQuery()
+                elif isinstance(token, lexer.VariableKeyword):
+                    query = VariableQuery()
+                elif isinstance(token, lexer.FieldKeyword):
+                    query = FieldQuery()
+                else:
+                    raise DslSyntaxError("No bueno")
+
+                self.check_grammar(lexer.Separator, token, "[")
+
+                while not isinstance(self.tokens.peek(), lexer.Separator):
+                    identifiers = list()
+                    attr = self.check_grammar(lexer.Attribute, token)
+
+                    if not attr.value in query.TOKEN_CLASS.FIELDS.keys():
+                        raise DslSyntaxError(f"Unrecognized {attr.__class__} for {token.__class__}")
+
+                    binder = self.check_grammar(lexer.Binder, attr)
+                    identifier = self.check_grammar(lexer.Identifier, binder)
+                    identifiers.append(identifier.value)
+
+                    while self.tokens.peek().value == "|":
+                        self.check_grammar(lexer.Binder, identifier)
+                        identifier = self.check_grammar(lexer.Identifier, binder)
+                        identifiers.append(identifier.value)
+
+                    setattr(query, attr.value, identifiers)
+
+                    next_token = self.tokens.peek()
+                    if next_token.value == ",":
+                        self.check_grammar(lexer.Binder, identifier)
+                    elif not next_token.value == "]":
+                        raise DslSyntaxError(f"Expected , or ], got {next_token.value}")
+
+                self.check_grammar(lexer.Separator, token, "]")
+                output_queue.append(query)
+
+                if not self.tokens.is_empty() and not isinstance(self.tokens.peek(), lexer.Operator):
+                    operator_stack.append(lexer.Operator("AND"))
             elif isinstance(token, lexer.Operator):
                 while operator_stack and isinstance(operator_stack[-1], lexer.Operator) and precedence[operator_stack[-1].value] >= precedence[token.value]:
                     output_queue.append(operator_stack.pop())
@@ -110,35 +238,7 @@ class Parser(object):
 
         for token in tokens:
             if isinstance(token, Query):
-                if token.query_type not in LOOKUP:
-                    raise LookupException(f"{token.query_type} not in lookup table")
-
-                query_path = LOOKUP[token.query_type]
-
-                query = {
-                    "match": {
-                        query_path: token.query_value
-                    }
-                }
-                if token.query_type not in EXCLUDE:
-                    query = {
-                        "nested": {
-                            "path": query_path.split(".")[0],
-                            "query": query,
-                            "inner_hits": {
-                                # TODO bug here
-                                # if (methodName:xx AND returnType:T1) OR (methodName:xx AND returnType:T2)
-                                # query can be simplified as methodName:xx AND (returnType:T1 OR returnType:T2)
-                                # which would not cause an error but user may not
-                                "name": "=".join([query_path, token.query_value]),
-                                "highlight": {
-                                    "fields": {
-                                        query_path: {}
-                                    }
-                                }
-                            }
-                        }
-                    }
+                query = token.get_query()
                 operand_stack.append(query)
             elif isinstance(token, lexer.Operator):
                 if len(operand_stack) < 2:
