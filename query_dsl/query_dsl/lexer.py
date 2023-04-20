@@ -1,4 +1,4 @@
-from .error import DslSyntaxError
+from .error import DslSyntaxError, QUERY_IS_NULL, QUERY_IS_EMPTY
 
 
 class LexerError(Exception):
@@ -139,10 +139,10 @@ class Lexer(object):
         self.end_pos = 0
 
         if data is None:
-            raise DslSyntaxError("Expected data, got NoneType")
+            raise DslSyntaxError("Expected data, got NoneType", QUERY_IS_NULL)
         
         if data == "":
-            raise DslSyntaxError("Expected data, got empty string")
+            raise DslSyntaxError("Expected data, got empty string", QUERY_IS_EMPTY)
 
         self.data = data
         self.length = len(data)
@@ -163,15 +163,15 @@ class Lexer(object):
         ident = self.data[self.cur_pos:self.end_pos]
         if ident in attributes:
             token_type = Attribute
-        elif ident in MetadataKeyword.LEADER:
+        elif ident == MetadataKeyword.LEADER:
             token_type = MetadataKeyword
-        elif ident in MethodKeyword.LEADER:
+        elif ident == MethodKeyword.LEADER:
             token_type = MethodKeyword
-        elif ident in ClassKeyword.LEADER:
+        elif ident == ClassKeyword.LEADER:
             token_type = ClassKeyword
-        elif ident in VariableKeyword.LEADER:
+        elif ident == VariableKeyword.LEADER:
             token_type = VariableKeyword
-        elif ident in FieldKeyword.LEADER:
+        elif ident == FieldKeyword.LEADER:
             token_type = FieldKeyword
         else:
             token_type = Identifier

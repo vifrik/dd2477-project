@@ -32,8 +32,12 @@ def query():
         query = request.args.get("q")
         return json.dumps(get_elastic_query(query))
     except query_dsl.error.DslSyntaxError as e:
+        message, error_id = e.args
         return {
-            "error": str(e)
+            "error": {
+                "message": message,
+                "error_id": error_id
+            }
         }
 
 
@@ -77,8 +81,12 @@ def search():
 
         return json.dumps(res)
     except query_dsl.error.DslSyntaxError as e:
+        message, error_id = e.args
         return {
-            "error": str(e)
+            "error": {
+                "message": message,
+                "error_id": error_id
+            }
         }
 
 

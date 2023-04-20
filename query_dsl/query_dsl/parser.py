@@ -4,7 +4,10 @@ import random
 import string
 
 from . import lexer
-from .error import DslSyntaxError
+from .error import DslSyntaxError, TOKENS_IS_EMPTY, INCORRECT_GRAMMAR, WRONG_KEYWORD_TYPE, WRONG_ATTRIBUTE_PROVIDED, \
+    MISSING_LEFT_PARENTHESIS, MISSING_KEYWORD, MISSING_RIGHT_PARENTHESIS, \
+    MISSING_OPERAND, UNRECOGNIZED_OPERATOR, MISSING_LEFT_SQUARE_BRACKET, MISSING_ATTRIBUTE, MISSING_BINDER, \
+    MISSING_IDENTIFIER, MISSING_RIGHT_SQUARE_BRACKET
 
 
 class EmptyListException(Exception):
@@ -129,14 +132,14 @@ class Parser(object):
     def __init__(self, tokens):
         self.tokens = ListHelper(tokens)
 
-    def check_grammar(self, class_expected, token, expected=None):
+    def check_grammar(self, class_expected, token, expected=None, error_id=INCORRECT_GRAMMAR):
         class_name = class_expected.__name__
         if self.tokens.is_empty():
-            raise DslSyntaxError(f"Expected {class_name} after {token.value}, got nothing")
+            raise DslSyntaxError(f"Expected {class_name} after {token.value}, got nothing", error_id)
         if not isinstance(new_token := self.tokens.pop(), class_expected):
-            raise DslSyntaxError(f"Expected {class_name} after {token.value}, got {new_token.value} instead")
+            raise DslSyntaxError(f"Expected {class_name} after {token.value}, got {new_token.value} instead", error_id)
         if expected is not None and new_token.value != expected:
-            raise DslSyntaxError(f"Expected {class_name} after {token.value}, got {new_token.value} instead")
+            raise DslSyntaxError(f"Expected {class_name} after {token.value}, got {new_token.value} instead", error_id)
         return new_token
 
     def parse(self):
@@ -160,35 +163,47 @@ class Parser(object):
                 elif isinstance(token, lexer.FieldKeyword):
                     query = FieldQuery()
                 else:
-                    raise DslSyntaxError("No bueno")
+                    raise DslSyntaxError("Keyword is of wrong type", WRONG_KEYWORD_TYPE)
 
-                self.check_grammar(lexer.Separator, token, "[")
+                self.check_grammar(lexer.Separator, token, expected="[", error_id=MISSING_LEFT_SQUARE_BRACKET)
+
+                if self.tokens.is_empty():
+                    raise DslSyntaxError(f"Expected attribute, got nothing", MISSING_ATTRIBUTE)
 
                 while not isinstance(self.tokens.peek(), lexer.Separator):
                     identifiers = list()
-                    attr = self.check_grammar(lexer.Attribute, token)
+                    attr = self.check_grammar(lexer.Attribute, token, error_id=MISSING_ATTRIBUTE)
 
                     if not attr.value in query.TOKEN_CLASS.FIELDS.keys():
-                        raise DslSyntaxError(f"Unrecognized {attr.__class__} for {token.__class__}")
+                        raise DslSyntaxError(f"Unrecognized {attr.__class__} for {token.__class__}", WRONG_ATTRIBUTE_PROVIDED)
 
-                    binder = self.check_grammar(lexer.Binder, attr)
-                    identifier = self.check_grammar(lexer.Identifier, binder)
+                    binder = self.check_grammar(lexer.Binder, attr, error_id=MISSING_BINDER)
+                    identifier = self.check_grammar(lexer.Identifier, binder, error_id=MISSING_IDENTIFIER)
                     identifiers.append(identifier.value)
 
+                    if self.tokens.is_empty():
+                        raise DslSyntaxError(f"Expected ], got nothing", MISSING_RIGHT_SQUARE_BRACKET)
+
                     while self.tokens.peek().value == "|":
-                        self.check_grammar(lexer.Binder, identifier)
-                        identifier = self.check_grammar(lexer.Identifier, binder)
+                        self.check_grammar(lexer.Binder, identifier, error_id=MISSING_BINDER)
+                        identifier = self.check_grammar(lexer.Identifier, binder, error_id=MISSING_IDENTIFIER)
                         identifiers.append(identifier.value)
+
+                        if self.tokens.is_empty():
+                            raise DslSyntaxError(f"Expected ], got nothing", MISSING_RIGHT_SQUARE_BRACKET)
 
                     setattr(query, attr.value, identifiers)
 
+                    if self.tokens.is_empty():
+                        raise DslSyntaxError(f"Expected ], got nothing", MISSING_RIGHT_SQUARE_BRACKET)
+
                     next_token = self.tokens.peek()
                     if next_token.value == ",":
-                        self.check_grammar(lexer.Binder, identifier)
+                        self.check_grammar(lexer.Binder, identifier, error_id=MISSING_BINDER)
                     elif not next_token.value == "]":
-                        raise DslSyntaxError(f"Expected , or ], got {next_token.value}")
+                        raise DslSyntaxError(f"Expected ], got {next_token.value}", MISSING_RIGHT_SQUARE_BRACKET)
 
-                self.check_grammar(lexer.Separator, token, "]")
+                self.check_grammar(lexer.Separator, token, expected="]", error_id=MISSING_RIGHT_SQUARE_BRACKET)
                 output_queue.append(query)
 
                 if not self.tokens.is_empty() and not isinstance(self.tokens.peek(), lexer.Operator):
@@ -206,13 +221,13 @@ class Parser(object):
                     if operator_stack and operator_stack[-1].value == "(":
                         operator_stack.pop()
                     else:
-                        raise DslSyntaxError("Missmatched parenthesis")
+                        raise DslSyntaxError("Mismatched parenthesis", MISSING_LEFT_PARENTHESIS)
             else:
-                raise DslSyntaxError(f"Expected Keyword, got {token.value} instead")
+                raise DslSyntaxError(f"Expected Keyword, got {token.value} instead", MISSING_KEYWORD)
         while operator_stack:
             operator = operator_stack.pop()
             if operator.value == "(":
-                raise DslSyntaxError("Missmatched parenthesis")
+                raise DslSyntaxError("Mismatched parenthesis", MISSING_RIGHT_PARENTHESIS)
             output_queue.append(operator)
 
         return output_queue
@@ -242,13 +257,13 @@ class Parser(object):
                 operand_stack.append(query)
             elif isinstance(token, lexer.Operator):
                 if len(operand_stack) < 2:
-                    raise DslSyntaxError(f"Not enough operands provided for {token.value}")
+                    raise DslSyntaxError(f"Not enough operands provided for {token.value}", MISSING_OPERAND)
                 left_operand = operand_stack.pop()
                 right_operand = operand_stack.pop()
                 if token.value == "AND" or token.value == "OR":
                     result = self.enclose_json(token.value, left_operand, right_operand)
                 else:
-                    raise DslSyntaxError(f"Unrecognized operator {token.value}")
+                    raise DslSyntaxError(f"Unrecognized operator {token.value}", UNRECOGNIZED_OPERATOR)
                 operand_stack.append(result)
 
         return operand_stack.pop()
