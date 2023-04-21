@@ -70,7 +70,7 @@ def search():
                     for inner_hit in hit["inner_hits"][key]["hits"]["hits"]:
                         print()
                         for highlight in inner_hit["highlight"]:
-                            type = highlight.split(".")[1]
+                            type = highlight.split(".")[-1]
                             highlights.append({
                                 "result": inner_hit["_source"][type + "_position"]
                             })
