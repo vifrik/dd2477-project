@@ -85,20 +85,54 @@ class Query(ABC):
         return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
     def get_query(self):
-        return {
-            "nested": {
-                "path": self.TOKEN_CLASS.PATH,
-                "query": self._query_helper_bool(),
-                "inner_hits": {
-                    "name": f"{self.TOKEN_CLASS.LEADER}-{self._get_random_string(10)}",
-                    "highlight": {
-                        "fields": {
-                            self.TOKEN_CLASS.FIELDS[field]: {} for field in self.get_fields()
+        json_list = list()
+        for field in self.get_fields():
+            path = self.TOKEN_CLASS.FIELDS[field]
+            last_dot_index = path.rfind(".")
+            path = path[:last_dot_index]
+
+            json_part = {
+                    "nested": {
+                        "path": path,
+                        "query": self._query_helper_bool(),
+                        "inner_hits": {
+                            "name": f"{self.TOKEN_CLASS.LEADER}-{self._get_random_string(10)}",
+                            "highlight": {
+                                "fields": {
+                                    self.TOKEN_CLASS.FIELDS[field]: {}
+                                }
+                            }
                         }
                     }
                 }
+            if "." in path:  # nested in nested
+                last_dot_index = path.rfind(".")
+                new_path = path[:last_dot_index]
+                json_part = {
+                    "nested": {
+                        "path": new_path,
+                        "query": json_part,
+                        "inner_hits": {
+                            "name": f"{self.TOKEN_CLASS.LEADER}-{self._get_random_string(10)}",
+                            "highlight": {
+                                "fields": {
+                                    self.TOKEN_CLASS.FIELDS[field]: {}
+                                }
+                            }
+                        }
+                    }
+                }
+
+            json_list.append(json_part)
+
+        if len(json_list) > 1:
+            return {
+                "bool": {
+                    "must": json_list
+                }
             }
-        }
+
+        return json_list[0]
 
 
 class MetadataQuery(Query):

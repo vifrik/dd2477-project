@@ -30,8 +30,9 @@ class MetadataKeyword(Keyword):
     FIELDS = {
         "name": "metadata.name",
         "repo": "metadata.repo",
-        "import": "metadata.imports",
-        "package": "metadata.package"
+        "commit": "metadata.commit_sha",
+        #"import": "metadata.imports",
+        #"package": "metadata.package"
     }
 
 
@@ -40,11 +41,11 @@ class MethodKeyword(Keyword):
     PATH = "methods"
     FIELDS = {
         "name": "methods.name",
-        "modifier": "methods.modifiers",
+        "modifier": "methods.modifiers.name",
         "returnType": "methods.return_type",
-        "annotation": "methods.annotations",
+        "annotation": "methods.annotations.name",
         "parameterName": "methods.parameters.name",
-        "parameterType": "methods.parameters.type",
+        #"parameterType": "methods.parameters.type",
     }
 
 
@@ -53,9 +54,9 @@ class ClassKeyword(Keyword):
     PATH = "classes"
     FIELDS = {
         "name": "classes.name",
-        "modifier": "classes.modifiers",
-        "annotation": "classes.annotations",
-        "extend": "classes.extends",
+        "modifier": "classes.modifiers.name",
+        "annotation": "classes.annotations.name",
+        #"extend": "classes.extends.name",
     }
 
 
@@ -64,7 +65,7 @@ class VariableKeyword(Keyword):
     PATH = "variables"
     FIELDS = {
         "name": "variables.name",
-        "type": "variables.type",
+        #"type": "variables.type",
     }
 
 
@@ -73,7 +74,7 @@ class FieldKeyword(Keyword):
     PATH = "fields"
     FIELDS = {
         "name": "fields.name",
-        "type": "fields.type",
+        #"type": "fields.type",
     }
 
 class Attribute(Token):
