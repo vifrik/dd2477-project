@@ -31,8 +31,8 @@ class MetadataKeyword(Keyword):
         "name": "metadata.name",
         "repo": "metadata.repo",
         "commit": "metadata.commit_sha",
-        #"import": "metadata.imports",
-        #"package": "metadata.package"
+        "import": "metadata.imports.name",
+        "package": "metadata.package"
     }
 
 
@@ -45,7 +45,7 @@ class MethodKeyword(Keyword):
         "returnType": "methods.return_type",
         "annotation": "methods.annotations.name",
         "parameterName": "methods.parameters.name",
-        #"parameterType": "methods.parameters.type",
+        "parameterType": "methods.parameters.type",
     }
 
 
@@ -56,7 +56,7 @@ class ClassKeyword(Keyword):
         "name": "classes.name",
         "modifier": "classes.modifiers.name",
         "annotation": "classes.annotations.name",
-        #"extend": "classes.extends.name",
+        "extend": "classes.extends.name",
     }
 
 
@@ -65,7 +65,7 @@ class VariableKeyword(Keyword):
     PATH = "variables"
     FIELDS = {
         "name": "variables.name",
-        #"type": "variables.type",
+        "type": "variables.type",
     }
 
 
@@ -74,7 +74,7 @@ class FieldKeyword(Keyword):
     PATH = "fields"
     FIELDS = {
         "name": "fields.name",
-        #"type": "fields.type",
+        "type": "fields.type",
     }
 
 class Attribute(Token):
