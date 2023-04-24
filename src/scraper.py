@@ -68,26 +68,15 @@ class Scraper:
 
     def path_setup(self):
         """
-        Creates the directory and metadata file if they don't exist.
+        Creates the directory and metadata file. If the directory already exists, it is deleted.
         """
-        os.makedirs(self.path, exist_ok=True)
-        try:
-            self.metadata_file = open(self.metadata_path, "r+")
-            # Remove the closing brace and add a comma
-            self.metadata_file.seek(0, 2)
-            # Seek back depending on the OS newline character
-            if os.linesep == "\r\n":
-                self.metadata_file.seek(self.metadata_file.tell() - 3, 0)
-            else:
-                self.metadata_file.seek(self.metadata_file.tell() - 2, 0)
-            self.metadata_file.truncate()
-            self.metadata_file.write(",\n")
-
-        except FileNotFoundError:
-            with open(self.metadata_path, "w") as f:
-                f.write("{\n")
-            self.metadata_file = open(self.metadata_path, "r+")
-            self.metadata_file.seek(0, 2)
+        if os.path.exists(self.path):
+            rmtree(self.path)
+        os.makedirs(self.path)
+        with open(self.metadata_path, "w") as f:
+            f.write("{\n")
+        self.metadata_file = open(self.metadata_path, "r+")
+        self.metadata_file.seek(0, 2)
 
     def close_metadata(self):
         """
@@ -171,7 +160,8 @@ class Scraper:
         """
         try:
             return file.decoded_content.decode("utf-8")
-        except UnicodeDecodeError:
+        except Exception as e:
+            print(f"Encoding error: {e}")
             return None
 
     def get_commit_hash(self, repo, file):
@@ -245,6 +235,7 @@ class Scraper:
                         path=file.path,
                         commit_sha=sha,
                         download_url=download_url,
+                        stars=repo.stargazers_count
                     ):
                         self.scraped_file_count += 1
                         if self.scraped_file_count % 100 == 0:
@@ -255,7 +246,6 @@ class Scraper:
                             self.close_metadata()
                             yield self.batch_size
                             # Clean up before starting a new run
-                            rmtree(self.path)
                             self.path_setup()
 
             # Deal with leftover files from the last run
@@ -267,12 +257,8 @@ class Scraper:
             print(f"Uncaught exception while scraping:")
             traceback.print_exc()
             if not self.metadata_file.closed:
-                if self.metadata_file.tell() < 4:
-                    print("Deleting empty metadata file")
-                    self.metadata_file.close()
-                    os.remove(self.metadata_path)
-                else:
-                    self.close_metadata()
+                self.close_metadata()
+            rmtree(self.path)
 
 
 if __name__ == "__main__":
