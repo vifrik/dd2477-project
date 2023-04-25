@@ -38,22 +38,7 @@ services:
       - "5001:5001"
     networks:
       - elastic
-
-  webhook:
-    restart: unless-stopped
-    image: staticfloat/docker-webhook
-    volumes:
-        # Mount this code into /code
-        - ./:/code
-        # Mount the docker socket
-        - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-        - WEBHOOK_SECRET=${WEBHOOK_SECRET}
-        - WEBHOOK_HOOKS_DIR=/code/hooks
-        - WEBHOOK_BRANCH_LIST=main
-    expose:
-        - 8000
-
+      
 networks:
   elastic:
     external: true
