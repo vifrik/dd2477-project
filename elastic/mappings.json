@@ -1,0 +1,112 @@
+{
+    "mappings": {
+      "properties": {
+        "classes": {
+          "type": "nested",
+          "properties": {
+            "annotations": {
+              "type": "nested",
+              "properties": {
+                "name": {"type": "text"},
+                "position": {"type": "long"}
+              }
+            },
+            "modifiers": {
+              "type": "nested",
+              "properties": {
+                "name": {"type": "text"},
+                "position": {"type": "long"}
+              }
+            },
+            "extends": {
+              "type": "nested",
+              "properties": {
+                  "name": {"type": "text"},
+                  "position": {"type": "long"}
+              }
+            },
+            "name": {"type": "text"},
+            "name_position": {"type": "long"},
+            "position": {"type": "long"}
+          }
+        },
+        "fields": {
+          "type": "nested",
+          "properties": {
+            "modifiers": {
+              "type": "nested",
+              "properties": {
+                "name": {"type": "text"},
+                "position": {"type": "long"}
+              }
+            },
+            "name": {"type": "text"},
+            "type": {"type": "text"},
+            "name_position": {"type": "long"},
+            "position": {"type": "long"}
+          }
+        },
+        "metadata": {
+          "properties": {
+            "commit_sha": {"type": "text"},
+            "download_url": {"type": "text"},
+            "given_name": {"type": "text"},
+            "name": {"type": "text"},
+            "path": {"type": "text"},
+            "repo": {"type": "text"},
+            "imports": {
+              "type": "nested",
+              "properties": {
+                  "name": {"type": "text"},
+                  "name_position": {"type": "long"},
+                  "position": {"type": "long"}
+              }
+            },
+            "package": {"type": "text"},
+            "timestamp": {"type": "date"}
+          }
+        },
+        "methods": {
+          "type": "nested",
+          "properties": {
+            "annotations": {
+              "type": "nested",
+              "properties": {
+                "name": {"type": "text"},
+                "position": {"type": "long"}
+              }
+            },
+            "modifiers": {
+              "type": "nested",
+              "properties": {
+                "name": {"type": "text"},
+                "position": {"type": "long"}
+              }
+            },
+            "name": {"type": "text"},
+            "name_position": {"type": "long"},
+            "parameters": {
+              "type": "nested",
+              "properties": {
+                "name": {"type": "text"},
+                "type": {"type": "text"},
+                "position": {"type": "long"}
+              }
+            },
+            "position": {"type": "long"},
+            "return_type": {"type": "text"},
+            "return_type_position": {"type": "long"}
+          }
+        },
+        "variables": {
+          "type": "nested",
+          "properties": {
+            "name": {"type": "text"},
+            "type": {"type": "text"},
+            "name_position": {"type": "long"},
+            "position": {"type": "long"}
+          }
+        }
+      }
+    }
+  }
