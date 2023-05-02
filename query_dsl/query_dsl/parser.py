@@ -53,8 +53,15 @@ class Query(ABC):
     def _query_helper_match(self, field, value):
         if len(value) == 1:
             return {
-                "match": {
-                    self.TOKEN_CLASS.FIELDS[field]: value[0]
+                "fuzzy": {
+                    self.TOKEN_CLASS.FIELDS[field]: {
+                        "value": value[0],
+                        "fuzziness": "AUTO",
+                        "max_expansions": 50,
+                        "prefix_length": 0,
+                        "transpositions": True,
+                        "rewrite": "constant_score"
+                    }
                 }
             }
 
