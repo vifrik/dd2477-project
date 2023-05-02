@@ -42,7 +42,7 @@ class MethodKeyword(Keyword):
     FIELDS = {
         "name": "methods.name",
         "modifier": "methods.modifiers.name",
-        "returnType": "methods.return_type",
+        "returnType": "methods.return-type",
         "annotation": "methods.annotations.name",
         "parameterName": "methods.parameters.name",
         "parameterType": "methods.parameters.type",
