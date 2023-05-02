@@ -71,9 +71,10 @@ def search():
                         print()
                         for highlight in inner_hit["highlight"]:
                             type = highlight.split(".")[-1]
-                            highlights.append({
-                                "result": inner_hit["_source"][type + "_position"]
-                            })
+                            if type != "type":
+                                highlights.append({
+                                    "result": inner_hit["_source"][type + "_position"]
+                                })
 
             new["highlights"] = highlights
 
