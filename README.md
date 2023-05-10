@@ -3,7 +3,7 @@
 ## Run instructions
 
 ### VS Code extension (Search engine UI)
-- Download dd2477 Project Github Pilot in VS Code extension store
+- Download [dd2477 Project Github Pilot](https://marketplace.visualstudio.com/items?itemName=William7y87yg876g87.githubpilot) in VS Code extension store
 - Login
 - Search using Query DSL language
 
